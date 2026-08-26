@@ -1,13 +1,26 @@
 import { STAFF_BY_ID } from "../data/staff";
 import { escapeHtml } from "../lib/dom";
-import type { EmployeeId } from "../types";
-import { renderObjectSvg } from "./svg-objects";
+import type { CompanyState, EmployeeId, Zone } from "../types";
+import { activePip, canTerminate } from "../state/store";
+import { renderIdentitySvg } from "./svg-objects";
+import { hasSprite, spriteHref } from "./sprites";
+import {
+  renderPipPaper,
+  renderReviewPaper,
+  renderTerminationPaper,
+} from "./paperwork";
+
+export type FormMode = "review" | "pip" | "relocate" | "terminate" | null;
 
 function stars(rating: number): string {
   return "●".repeat(rating) + "○".repeat(5 - rating);
 }
 
-export function renderPanel(selectedId: EmployeeId | null): string {
+export function renderPanel(
+  selectedId: EmployeeId | null,
+  state: CompanyState,
+  form: FormMode,
+): string {
   if (!selectedId) {
     return `
       <aside class="panel panel-empty" aria-label="Personnel file">
@@ -15,39 +28,54 @@ export function renderPanel(selectedId: EmployeeId | null): string {
         <h2>Select an employee</h2>
         <p class="lede">
           Click a desk object to open its file. You are upper management.
-          The objects work here. Some of them.
+          Drag objects between zones, or let your browser agent run HR.
         </p>
         <ol class="howto">
           <li>Click or tab to an object.</li>
-          <li>Read the file. It is complete, if not current.</li>
-          <li>HR actions arrive in a later packet.</li>
+          <li>File a review, a PIP, a promotion, or a relocation.</li>
+          <li>Termination needs a confirmation click.</li>
         </ol>
       </aside>
     `;
   }
 
   const record = STAFF_BY_ID[selectedId];
-  const manager = record.reportsTo ? STAFF_BY_ID[record.reportsTo] : null;
-  const backstory = record.backstory
-    .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
-    .join("");
+  const emp = state.employees[selectedId];
+  const manager = emp.reportsTo && emp.standing !== "terminated" ? STAFF_BY_ID[emp.reportsTo] : null;
+  const open = activePip(emp);
+  const term = state.alumni.find((row) => row.employeeId === selectedId);
+  const thumb = hasSprite(record.id)
+    ? `<img class="identity-img" alt="" src="${spriteHref(record.id)}" width="88" height="88" />`
+    : `<svg class="identity-svg" viewBox="0 0 64 64" aria-hidden="true">${renderIdentitySvg(record.id)}</svg>`;
 
+  const backstory = record.backstory.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("");
+
+  const liveReviews = emp.reviews.map(
+    (review) => `
+      <article class="file-card">
+        <header>
+          <span>Q${review.quarter} FY26 · live</span>
+          <span class="rating" aria-label="Rating ${review.rating} of 5">${stars(review.rating)}</span>
+        </header>
+        <p>${escapeHtml(review.summary)}</p>
+      </article>
+    `,
+  );
+  const histReviews = record.pastReviews.map(
+    (review) => `
+      <article class="file-card">
+        <header>
+          <span>${escapeHtml(review.quarter)}</span>
+          <span class="rating" aria-label="Rating ${review.rating} of 5">${stars(review.rating)}</span>
+        </header>
+        <p>${escapeHtml(review.summary)}</p>
+      </article>
+    `,
+  );
   const reviews =
-    record.pastReviews.length === 0
+    liveReviews.length + histReviews.length === 0
       ? `<p class="muted">None on file.</p>`
-      : record.pastReviews
-          .map(
-            (review) => `
-              <article class="file-card">
-                <header>
-                  <span>${escapeHtml(review.quarter)}</span>
-                  <span class="rating" aria-label="Rating ${review.rating} of 5">${stars(review.rating)}</span>
-                </header>
-                <p>${escapeHtml(review.summary)}</p>
-              </article>
-            `,
-          )
-          .join("");
+      : `${liveReviews.join("")}${histReviews.join("")}`;
 
   const incidents =
     record.incidents.length === 0
@@ -63,33 +91,61 @@ export function renderPanel(selectedId: EmployeeId | null): string {
           )
           .join("");
 
+  const standingLabel =
+    emp.standing === "on_pip"
+      ? `On PIP (${open?.days ?? "—"} days)`
+      : emp.standing === "terminated"
+        ? "Terminated · alumni"
+        : "Active";
+
+  const actions =
+    emp.standing === "terminated"
+      ? `<p class="muted">This file is closed. Tools for this object are no longer registered.</p>`
+      : `
+        <div class="actions">
+          <button type="button" class="solid-btn" data-form="review">Write review</button>
+          ${open ? `<button type="button" class="ghost-btn" data-form="resolve-pass">PIP passed</button>
+                    <button type="button" class="ghost-btn" data-form="resolve-fail">PIP failed</button>` : `<button type="button" class="ghost-btn" data-form="pip">Put on PIP</button>`}
+          <button type="button" class="ghost-btn" data-form="promote">Promote</button>
+          <button type="button" class="ghost-btn" data-form="relocate">Relocate</button>
+          ${
+            canTerminate(emp, state.quarter)
+              ? `<button type="button" class="solid-btn danger" data-form="terminate">Terminate</button>`
+              : `<p class="muted">Termination locked: promoted this quarter.</p>`
+          }
+        </div>
+      `;
+
   return `
-    <aside class="panel" aria-label="Personnel file for ${escapeHtml(record.name)}" role="region">
+    <aside class="panel" aria-label="Personnel file for ${escapeHtml(record.name)}" role="region" tabindex="-1">
       <header class="panel-head">
         <p class="panel-kicker">Form HR-7B · Personnel file</p>
-        <button type="button" class="icon-btn" data-action="close-panel" aria-label="Close personnel file">
-          Close
-        </button>
+        <button type="button" class="icon-btn" data-action="close-panel" aria-label="Close personnel file">Close</button>
       </header>
 
       <div class="identity">
-        <svg class="identity-svg" viewBox="-8 -8 120 100" aria-hidden="true">
-          ${renderObjectSvg(record.id, false)}
-        </svg>
+        ${thumb}
         <div>
           <h2>${escapeHtml(record.name)}</h2>
-          <p class="role">${escapeHtml(record.role)}</p>
+          <p class="role">${escapeHtml(emp.title)}</p>
           <p class="meta">${escapeHtml(record.department)} · Tenure: ${escapeHtml(record.tenure)}</p>
-          <p class="standing"><span class="pip-dot active"></span> Standing: Active</p>
+          <p class="standing"><span class="pip-dot ${emp.standing}"></span> Standing: ${standingLabel}</p>
         </div>
       </div>
 
       <dl class="facts">
         <div><dt>Employee ID</dt><dd>${escapeHtml(record.id)}</dd></div>
-        <div><dt>Reports to</dt><dd>${manager ? escapeHtml(manager.name) : "— Board / the wall —"}</dd></div>
-        <div><dt>Home zone</dt><dd>${escapeHtml(record.defaultZone)}</dd></div>
+        <div><dt>Reports to</dt><dd>${manager ? escapeHtml(manager.name) : emp.standing === "terminated" ? "Alumni wall" : "— Board / the wall —"}</dd></div>
+        <div><dt>Zone</dt><dd>${escapeHtml(emp.zone)}</dd></div>
         <div><dt>Pronouns</dt><dd>${escapeHtml(record.pronouns)}</dd></div>
       </dl>
+
+      ${formBlock(selectedId, form)}
+      ${actions}
+
+      ${emp.reviews[0] ? renderReviewPaper(emp, emp.reviews[0]) : ""}
+      ${open ? renderPipPaper(emp, open) : ""}
+      ${term ? renderTerminationPaper(emp, term) : ""}
 
       <section>
         <h3>Narrative</h3>
@@ -97,7 +153,7 @@ export function renderPanel(selectedId: EmployeeId | null): string {
       </section>
 
       <section>
-        <h3>Prior reviews</h3>
+        <h3>Reviews</h3>
         ${reviews}
       </section>
 
@@ -107,4 +163,96 @@ export function renderPanel(selectedId: EmployeeId | null): string {
       </section>
     </aside>
   `;
+}
+
+function formBlock(id: EmployeeId, form: FormMode): string {
+  if (form === "review") {
+    return `
+      <form class="paperwork" data-hr-form="review" data-id="${id}">
+        <p class="form-id">Form PR-12 · live entry</p>
+        <h4>Write review</h4>
+        <label>Rating
+          <select name="rating" required>
+            <option value="1">1 — Unsatisfactory</option>
+            <option value="2">2 — Needs improvement</option>
+            <option value="3" selected>3 — Meets</option>
+            <option value="4">4 — Exceeds</option>
+            <option value="5">5 — Distinguished</option>
+          </select>
+        </label>
+        <label>Summary
+          <textarea name="summary" rows="3" required></textarea>
+        </label>
+        <label>Strengths (one per line)
+          <textarea name="strengths" rows="2"></textarea>
+        </label>
+        <label>Concerns (one per line)
+          <textarea name="concerns" rows="2"></textarea>
+        </label>
+        <div class="actions">
+          <button type="submit" class="solid-btn">File review</button>
+          <button type="button" class="icon-btn" data-action="cancel-form">Cancel</button>
+        </div>
+        <div class="sig"><div class="sig-line">Upper Management</div></div>
+      </form>
+    `;
+  }
+  if (form === "pip") {
+    return `
+      <form class="paperwork" data-hr-form="pip" data-id="${id}">
+        <p class="form-id">Form PIP-90 · live entry</p>
+        <h4>Performance Improvement Plan</h4>
+        <label>Reason
+          <textarea name="reason" rows="2" required></textarea>
+        </label>
+        <label>Goals (one per line)
+          <textarea name="goals" rows="3" required></textarea>
+        </label>
+        <label>Duration
+          <select name="days">
+            <option value="30">30 days</option>
+            <option value="60" selected>60 days</option>
+            <option value="90">90 days</option>
+          </select>
+        </label>
+        <div class="actions">
+          <button type="submit" class="solid-btn">Issue PIP</button>
+          <button type="button" class="icon-btn" data-action="cancel-form">Cancel</button>
+        </div>
+        <div class="sig"><div class="sig-line">Upper Management</div></div>
+      </form>
+    `;
+  }
+  if (form === "relocate") {
+    const zones: Zone[] = ["prime", "standard", "shelf", "drawer"];
+    return `
+      <form class="paperwork" data-hr-form="relocate" data-id="${id}">
+        <p class="form-id">Form REL-3</p>
+        <h4>Relocate</h4>
+        <label>Zone
+          <select name="zone">${zones.map((zone) => `<option value="${zone}">${zone}</option>`).join("")}</select>
+        </label>
+        <div class="actions">
+          <button type="submit" class="solid-btn">Move</button>
+          <button type="button" class="icon-btn" data-action="cancel-form">Cancel</button>
+        </div>
+      </form>
+    `;
+  }
+  if (form === "terminate") {
+    return `
+      <form class="paperwork" data-hr-form="terminate" data-id="${id}">
+        <p class="form-id">Form SEP-1 · requires confirmation</p>
+        <h4>Termination packet</h4>
+        <label>Reason
+          <textarea name="reason" rows="3" required></textarea>
+        </label>
+        <div class="actions">
+          <button type="submit" class="solid-btn danger">Prepare termination</button>
+          <button type="button" class="icon-btn" data-action="cancel-form">Cancel</button>
+        </div>
+      </form>
+    `;
+  }
+  return "";
 }

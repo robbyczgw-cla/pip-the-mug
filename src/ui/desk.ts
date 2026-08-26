@@ -1,35 +1,72 @@
-import { DEFAULT_LAYOUT, RENDER_ORDER, STAFF_BY_ID } from "../data/staff";
+import { RENDER_ORDER, STAFF_BY_ID } from "../data/staff";
 import { escapeHtml } from "../lib/dom";
-import type { EmployeeId } from "../types";
+import type { CompanyState, EmployeeId } from "../types";
+import { hasSprite, spriteHref } from "./sprites";
 import { renderObjectSvg } from "./svg-objects";
 
-export function renderDeskSvg(selectedId: EmployeeId | null): string {
-  const objects = RENDER_ORDER.map((id) => {
-    const pose = DEFAULT_LAYOUT[id];
-    const record = STAFF_BY_ID[id];
-    const selected = selectedId === id;
-    const label = `${record.name}, ${record.role}`;
-    return `
-      <g
-        class="emp ${selected ? "is-selected" : ""}"
-        data-id="${id}"
-        tabindex="0"
-        role="button"
-        aria-label="${escapeHtml(label)}"
-        aria-pressed="${selected ? "true" : "false"}"
-        transform="translate(${pose.x} ${pose.y}) rotate(${pose.rotate})"
-      >
-        ${renderObjectSvg(id, selected)}
-      </g>
-    `;
-  }).join("");
+function alumniCards(state: CompanyState): string {
+  if (state.alumni.length === 0) {
+    return `<text x="79" y="160" text-anchor="middle" class="zone-hint">No separations
+this quarter.</text>`;
+  }
+  return state.alumni
+    .slice(0, 6)
+    .map((row, index) => {
+      const record = STAFF_BY_ID[row.employeeId];
+      const y = 138 + index * 72;
+      return `
+        <g>
+          <rect class="alumni-card" x="30" y="${y}" width="98" height="64" rx="2"/>
+          <text x="79" y="${y + 22}" text-anchor="middle" class="zone-label">${escapeHtml(record.name)}</text>
+          <text x="79" y="${y + 40}" text-anchor="middle" class="zone-hint">separated</text>
+        </g>
+      `;
+    })
+    .join("");
+}
+
+function objectGroup(id: EmployeeId, state: CompanyState, selectedId: EmployeeId | null): string {
+  const emp = state.employees[id];
+  const record = STAFF_BY_ID[id];
+  const selected = selectedId === id;
+  const label = `${record.name}, ${emp.title}, ${emp.standing}`;
+  const pip =
+    emp.standing === "on_pip"
+      ? hasSprite("pip-sticker")
+        ? `<image class="emp-sprite" href="${spriteHref("pip-sticker")}" x="36" y="-8" width="28" height="28"/>`
+        : `<g class="pip-badge-g">
+             <rect x="34" y="-6" width="28" height="14" fill="#e8c547" stroke="#241c14"/>
+             <text class="pip-badge" x="48" y="5" text-anchor="middle" fill="#241c14">PIP</text>
+           </g>`
+      : "";
+
+  return `
+    <g
+      class="emp ${selected ? "is-selected" : ""} ${emp.standing === "terminated" ? "is-terminated" : ""}"
+      data-id="${id}"
+      data-zone="${emp.zone}"
+      tabindex="0"
+      role="button"
+      aria-label="${escapeHtml(label)}"
+      aria-pressed="${selected ? "true" : "false"}"
+      style="transform: translate(${emp.pose.x}px, ${emp.pose.y}px) rotate(${emp.pose.rotate}deg); transform-box: fill-box; transform-origin: 32px 32px;"
+    >
+      ${renderObjectSvg(id, selected)}
+      ${pip}
+    </g>
+  `;
+}
+
+export function renderDeskSvg(state: CompanyState, selectedId: EmployeeId | null): string {
+  const objects = RENDER_ORDER.map((id) => objectGroup(id, state, selectedId)).join("");
+  const lead = STAFF_BY_ID[state.deskLeadId];
 
   return `
     <svg
       class="desk-svg"
       viewBox="0 0 1200 760"
       role="img"
-      aria-label="Top-down view of Desk 4B. Thirteen employees sit on the desk. Click an object to open its personnel file."
+      aria-label="Top-down view of Desk 4B. Thirteen employees sit on the desk. Click an object to open its personnel file. Drag to relocate."
     >
       <defs>
         <filter id="grain" x="0" y="0" width="100%" height="100%">
@@ -52,45 +89,32 @@ export function renderDeskSvg(selectedId: EmployeeId | null): string {
           <rect width="16" height="16" fill="#c4a574"/>
           <circle cx="3" cy="5" r="0.8" fill="#8b5e34" opacity="0.35"/>
           <circle cx="11" cy="10" r="0.7" fill="#8b5e34" opacity="0.3"/>
-          <circle cx="8" cy="2" r="0.5" fill="#6b4423" opacity="0.25"/>
         </pattern>
       </defs>
 
       <rect class="wall" x="0" y="0" width="1200" height="760" fill="#efe6d4"/>
       <rect x="0" y="0" width="1200" height="760" filter="url(#grain)"/>
 
-      <!-- Alumni cork wall -->
       <g class="alumni-board">
         <rect x="18" y="78" width="122" height="580" rx="6" fill="url(#cork)" stroke="#8b5e34" stroke-width="3"/>
         <rect x="28" y="92" width="102" height="28" fill="#f6f0e4" stroke="#241c14" stroke-width="1.2"/>
         <text x="79" y="111" text-anchor="middle" class="zone-label">ALUMNI</text>
-        <text x="79" y="160" text-anchor="middle" class="zone-hint">No separations
-this quarter.</text>
+        ${alumniCards(state)}
       </g>
 
-      <!-- Desk -->
       <g filter="url(#soft-shadow)">
         <rect x="156" y="64" width="1008" height="632" rx="18" fill="#8b5e34"/>
         <rect x="168" y="76" width="984" height="596" rx="12" fill="url(#wood)"/>
         <rect x="168" y="76" width="984" height="596" rx="12" filter="url(#grain)"/>
       </g>
 
-      <!-- Blotter -->
       <rect x="380" y="300" width="420" height="260" rx="4" fill="#d9c7a1" opacity="0.55" stroke="#8b5e34" stroke-width="1"/>
-      <rect x="392" y="312" width="396" height="236" fill="none" stroke="#b08a54" stroke-width="0.6" opacity="0.5"/>
-
-      <!-- Coffee ring: Coaster is unused -->
       <ellipse cx="310" cy="360" rx="26" ry="16" fill="none" stroke="#8b5e34" stroke-width="3" opacity="0.28"/>
-      <ellipse cx="310" cy="360" rx="18" ry="10" fill="none" stroke="#8b5e34" stroke-width="1.5" opacity="0.2"/>
 
-      <!-- Shelf zone -->
       <rect x="188" y="88" width="944" height="52" rx="4" fill="#241c14" opacity="0.06"/>
       <text x="210" y="118" class="zone-chip">SHELF</text>
-
-      <!-- Prime zone near monitor -->
       <text x="430" y="268" class="zone-chip">PRIME</text>
 
-      <!-- Drawer -->
       <g class="drawer-zone">
         <rect x="188" y="560" width="220" height="88" rx="6" fill="#a06e3c" stroke="#6b4423" stroke-width="2"/>
         <rect x="198" y="570" width="200" height="68" rx="3" fill="#b8874f"/>
@@ -98,7 +122,6 @@ this quarter.</text>
         <text x="298" y="548" text-anchor="middle" class="zone-chip">DRAWER</text>
       </g>
 
-      <!-- Donated / Sink -->
       <g class="sink-zone">
         <rect x="900" y="520" width="220" height="128" rx="8" fill="#c5ccc8" stroke="#241c14" stroke-width="2"/>
         <rect x="912" y="532" width="196" height="78" rx="40" fill="#9aa3a0" stroke="#241c14" stroke-width="1.4"/>
@@ -107,11 +130,10 @@ this quarter.</text>
         <text x="1010" y="632" text-anchor="middle" class="zone-label">DONATED / SINK</text>
       </g>
 
-      <!-- Nameplate -->
       <g>
-        <rect x="188" y="140" width="148" height="36" rx="2" fill="#f6f0e4" stroke="#241c14" stroke-width="1.3"/>
-        <text x="262" y="156" text-anchor="middle" class="nameplate">DESK 4B</text>
-        <text x="262" y="170" text-anchor="middle" class="nameplate-sub">INTERIM LEAD: MONITOR</text>
+        <rect x="188" y="140" width="168" height="36" rx="2" fill="#f6f0e4" stroke="#241c14" stroke-width="1.3"/>
+        <text x="272" y="156" text-anchor="middle" class="nameplate">DESK 4B</text>
+        <text x="272" y="170" text-anchor="middle" class="nameplate-sub">INTERIM LEAD: ${escapeHtml(lead.name).toUpperCase()}</text>
       </g>
 
       ${objects}

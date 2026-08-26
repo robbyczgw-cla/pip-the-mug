@@ -62,3 +62,78 @@ export interface LayoutPose {
   y: number;
   rotate: number;
 }
+
+export interface ReviewRecord {
+  id: string;
+  employeeId: EmployeeId;
+  rating: 1 | 2 | 3 | 4 | 5;
+  summary: string;
+  strengths: string[];
+  concerns: string[];
+  at: string;
+  quarter: number;
+}
+
+export interface PipRecord {
+  id: string;
+  employeeId: EmployeeId;
+  reason: string;
+  goals: string[];
+  days: PipDays;
+  startedAt: string;
+  outcome?: PipOutcome;
+  resolvedAt?: string;
+}
+
+export interface TerminationRecord {
+  employeeId: EmployeeId;
+  reason: string;
+  at: string;
+}
+
+export interface ActivityEntry {
+  id: string;
+  at: string;
+  tool: string;
+  actor: Actor;
+  summary: string;
+}
+
+export type PaperKind = "review" | "pip" | "termination";
+
+export interface PaperItem {
+  id: string;
+  kind: PaperKind;
+  employeeId: EmployeeId;
+  createdAt: string;
+}
+
+export interface EmployeeRuntime {
+  id: EmployeeId;
+  title: string;
+  zone: Zone;
+  standing: Standing;
+  reportsTo: EmployeeId | null;
+  pose: LayoutPose;
+  promotedAtQuarter: number | null;
+  reviews: ReviewRecord[];
+  pips: PipRecord[];
+}
+
+export interface CompanyState {
+  version: number;
+  quarter: number;
+  deskLeadId: EmployeeId;
+  soundEnabled: boolean;
+  employees: Record<EmployeeId, EmployeeRuntime>;
+  alumni: TerminationRecord[];
+  activity: ActivityEntry[];
+  papers: PaperItem[];
+}
+
+export interface ToolResult<T> {
+  ok: boolean;
+  summary: string;
+  data?: T;
+  error?: string;
+}
