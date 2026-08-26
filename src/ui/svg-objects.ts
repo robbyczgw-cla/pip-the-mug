@@ -28,7 +28,7 @@ interface ObjectArt {
 
 const OBJECTS: Record<EmployeeId, ObjectArt> = {
   mug: {
-    size: 76,
+    size: 96,
     caption: "Mug",
     src: { x: 6, y: 2, w: 56, h: 62 },
     fallback: `
@@ -43,7 +43,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   coaster: {
-    size: 64,
+    size: 76,
     caption: "Coaster",
     src: { x: 2, y: 4, w: 52, h: 32 },
     fallback: `
@@ -55,7 +55,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   pen: {
-    size: 96,
+    size: 130,
     caption: "Pen",
     src: { x: 2, y: 8, w: 104, h: 20 },
     fallback: `
@@ -69,7 +69,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   "pen-2": {
-    size: 92,
+    size: 124,
     caption: "Pen (2)",
     src: { x: 4, y: 9, w: 94, h: 18 },
     fallback: `
@@ -81,7 +81,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   monitor: {
-    size: 180,
+    size: 150,
     caption: "Monitor",
     src: { x: 6, y: 6, w: 234, h: 138 },
     fallback: `
@@ -101,7 +101,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   plant: {
-    size: 92,
+    size: 120,
     caption: "Plant",
     src: { x: 12, y: 18, w: 52, h: 78 },
     fallback: `
@@ -117,7 +117,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   charger: {
-    size: 88,
+    size: 110,
     caption: "Charger",
     src: { x: 6, y: 15, w: 84, h: 34 },
     fallback: `
@@ -130,7 +130,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   "sticky-notes": {
-    size: 72,
+    size: 96,
     caption: "Notes",
     src: { x: 8, y: 8, w: 54, h: 54 },
     fallback: `
@@ -141,7 +141,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   scissors: {
-    size: 88,
+    size: 120,
     caption: "Scissors",
     src: { x: 4, y: 4, w: 76, h: 44 },
     fallback: `
@@ -155,7 +155,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   stapler: {
-    size: 84,
+    size: 118,
     caption: "Stapler",
     src: { x: 6, y: 6, w: 72, h: 36 },
     fallback: `
@@ -168,7 +168,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   "webcam-cover": {
-    size: 54,
+    size: 70,
     caption: "Cover",
     src: { x: 2, y: 6, w: 48, h: 20 },
     fallback: `
@@ -178,7 +178,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   "usb-hub": {
-    size: 84,
+    size: 110,
     caption: "USB Hub",
     src: { x: 4, y: 6, w: 80, h: 34 },
     fallback: `
@@ -193,7 +193,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   "stress-ball": {
-    size: 66,
+    size: 88,
     caption: "Stress Ball",
     src: { x: 6, y: 4, w: 50, h: 52 },
     fallback: `
