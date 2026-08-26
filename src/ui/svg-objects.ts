@@ -168,7 +168,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   "webcam-cover": {
-    size: 70,
+    size: 60,
     caption: "Cover",
     src: { x: 2, y: 6, w: 48, h: 20 },
     fallback: `
@@ -178,7 +178,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   "usb-hub": {
-    size: 110,
+    size: 100,
     caption: "USB Hub",
     src: { x: 4, y: 6, w: 80, h: 34 },
     fallback: `
@@ -193,7 +193,7 @@ const OBJECTS: Record<EmployeeId, ObjectArt> = {
   },
 
   "stress-ball": {
-    size: 88,
+    size: 78,
     caption: "Stress Ball",
     src: { x: 6, y: 4, w: 50, h: 52 },
     fallback: `
