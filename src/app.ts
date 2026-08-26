@@ -22,6 +22,8 @@ import { renderPanel, type FormMode } from "./ui/panel";
 import { renderActivityLog } from "./ui/activity-log";
 import { renderConfirm } from "./ui/confirm";
 import { renderBanner } from "./ui/banner";
+import { startWebMcp } from "./webmcp/register";
+import { applyDemoSeed, isDemoRequest } from "./data/demo";
 
 interface UiState {
   selectedId: EmployeeId | null;
@@ -186,6 +188,8 @@ function handleForm(form: HTMLFormElement): void {
 
 export function mount(root: HTMLElement): void {
   loadState();
+  if (isDemoRequest()) applyDemoSeed();
+  startWebMcp();
   root.innerHTML = `
     <div data-header></div>
     <div data-banner></div>
