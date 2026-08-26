@@ -1,6 +1,7 @@
 import type { EmployeeId, PipDays, Zone } from "./types";
 import { EMPLOYEE_IDS } from "./types";
 import { playPaperShuffle } from "./lib/audio";
+import { prefersReducedMotion } from "./lib/dom";
 import { enqueue } from "./state/queue";
 import { zoneAt } from "./state/layout";
 import {
@@ -62,7 +63,24 @@ function render(): void {
   if (!header || !scene || !panel || !log || !modal || !banner) return;
   header.innerHTML = renderHeader(state);
   banner.innerHTML = renderBanner();
+  const prior = new Map<string, string>();
+  scene.querySelectorAll<SVGGElement>(".emp").forEach((el) => {
+    if (el.dataset.id && el.style.transform) prior.set(el.dataset.id, el.style.transform);
+  });
   scene.innerHTML = renderDeskSvg(state, ui.selectedId);
+  if (!prefersReducedMotion()) {
+    scene.querySelectorAll<SVGGElement>(".emp").forEach((el) => {
+      const id = el.dataset.id;
+      const next = el.style.transform;
+      const prev = id ? prior.get(id) : undefined;
+      if (!prev || !next || prev === next) return;
+      el.style.transition = "none";
+      el.style.transform = prev;
+      el.getBoundingClientRect();
+      el.style.transition = "";
+      el.style.transform = next;
+    });
+  }
   panel.innerHTML = renderPanel(ui.selectedId, state, ui.form);
   log.innerHTML = renderActivityLog(state.activity, ui.logOpen);
   modal.innerHTML = ui.pendingTerminate
