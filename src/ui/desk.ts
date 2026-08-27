@@ -1,6 +1,6 @@
 import { RENDER_ORDER, STAFF_BY_ID } from "../data/staff";
 import { escapeHtml } from "../lib/dom";
-import type { CompanyState, EmployeeId } from "../types";
+import type { CompanyState, EmployeeId, LayoutPose } from "../types";
 import { hasSprite, spriteHref } from "./sprites";
 import { renderObjectSvg } from "./svg-objects";
 
@@ -54,10 +54,25 @@ function paperStack(state: CompanyState): string {
     .join("");
 }
 
+const FEATURED_SCALE = 1.22;
+
+/** The demo desk sells one hire. Mug is drawn larger than the rest of the roster. */
+export function isFeatured(state: CompanyState, id: EmployeeId): boolean {
+  const emp = state.employees[id];
+  return state.seed === "demo" && id === "mug" && emp?.standing !== "terminated";
+}
+
+/** Shared by the rendered pose and the live drag preview so the scale never drops mid-drag. */
+export function empTransform(pose: LayoutPose, featured: boolean): string {
+  return `translate(${pose.x}px, ${pose.y}px) rotate(${pose.rotate}deg) scale(${featured ? FEATURED_SCALE : 1})`;
+}
+
 function objectGroup(id: EmployeeId, state: CompanyState, selectedId: EmployeeId | null): string {
   const emp = state.employees[id];
+  if (!emp) return "";
   const record = STAFF_BY_ID[id];
   const selected = selectedId === id;
+  const featured = isFeatured(state, id);
   const label = `${record.name}, ${emp.title}, ${emp.standing}`;
   const pip =
     emp.standing === "on_pip"
@@ -71,14 +86,14 @@ function objectGroup(id: EmployeeId, state: CompanyState, selectedId: EmployeeId
 
   return `
     <g
-      class="emp ${selected ? "is-selected" : ""} ${emp.standing === "terminated" ? "is-terminated" : ""}"
+      class="emp ${selected ? "is-selected" : ""} ${emp.standing === "terminated" ? "is-terminated" : ""} ${featured ? "is-featured" : ""}"
       data-id="${id}"
       data-zone="${emp.zone}"
       tabindex="0"
       role="button"
       aria-label="${escapeHtml(label)}"
       aria-pressed="${selected ? "true" : "false"}"
-      style="transform: translate(${emp.pose.x}px, ${emp.pose.y}px) rotate(${emp.pose.rotate}deg); transform-box: fill-box; transform-origin: 32px 32px;"
+      style="transform: ${empTransform(emp.pose, featured)}; transform-box: fill-box; transform-origin: 32px 32px;"
     >
       ${renderObjectSvg(id, selected)}
       ${pip}
@@ -87,15 +102,19 @@ function objectGroup(id: EmployeeId, state: CompanyState, selectedId: EmployeeId
 }
 
 export function renderDeskSvg(state: CompanyState, selectedId: EmployeeId | null): string {
-  const objects = RENDER_ORDER.map((id) => objectGroup(id, state, selectedId)).join("");
-  const lead = STAFF_BY_ID[state.deskLeadId];
+  const objects = RENDER_ORDER.filter((id) => state.employees[id])
+    .map((id) => objectGroup(id, state, selectedId))
+    .join("");
+  const lead = STAFF_BY_ID[state.deskLeadId] ?? STAFF_BY_ID.monitor;
+  const count = Object.values(state.employees).filter((emp) => emp && emp.standing !== "terminated").length;
 
   return `
     <svg
       class="desk-svg"
+      data-seed="${state.seed}"
       viewBox="0 0 1200 760"
       role="img"
-      aria-label="Top-down view of Desk 4B. Thirteen employees sit on the desk. Click an object to open its personnel file. Drag to relocate."
+      aria-label="Top-down view of Desk 4B. ${count} employees sit on the desk. Click an object to open its personnel file. Drag to relocate."
     >
       <defs>
         <filter id="grain" x="0" y="0" width="100%" height="100%">

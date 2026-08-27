@@ -217,7 +217,15 @@ body {
   transform-origin: 32px 32px;
 }
 
-.emp:not(.is-terminated):not(.is-dragging):hover {
+.emp.is-featured {
+  filter: drop-shadow(0 5px 0 rgba(36, 28, 20, 0.28));
+}
+
+.emp.is-featured:not(.is-dragging):hover {
+  filter: drop-shadow(0 6px 0 rgba(36, 28, 20, 0.32));
+}
+
+.emp:not(.is-terminated):not(.is-dragging):not(.is-featured):hover {
   filter: drop-shadow(0 3px 0 rgba(36, 28, 20, 0.22));
 }
 

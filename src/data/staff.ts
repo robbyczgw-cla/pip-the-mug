@@ -1,4 +1,4 @@
-import type { EmployeeId, LayoutPose, StaffRecord } from "../types";
+import type { EmployeeId, LayoutPose, StaffRecord } from "../types.ts";
 
 export const COMPANY = {
   legalName: "Desktop Holdings LLC",

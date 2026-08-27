@@ -1,9 +1,19 @@
-import { DEFAULT_LAYOUT, STAFF } from "../data/staff";
-import { uid } from "../lib/id";
+import { DEFAULT_LAYOUT, STAFF_BY_ID } from "../data/staff.ts";
+import {
+  DEMO_LAYOUT,
+  DEMO_REPORTS,
+  DEMO_ZONES,
+  LEGACY_STORAGE_KEY,
+  isDemoId,
+  rosterFor,
+  storageKey,
+} from "../data/seeds.ts";
+import { uid } from "../lib/id.ts";
 import type {
   ActivityEntry,
   Actor,
   CompanyState,
+  DeskSeed,
   EmployeeId,
   EmployeeRuntime,
   LayoutPose,
@@ -12,12 +22,10 @@ import type {
   PipDays,
   PipOutcome,
   Zone,
-} from "../types";
-import { EMPLOYEE_IDS } from "../types";
-import { occupiedInZone, slotInZone } from "./layout";
+} from "../types.ts";
+import { occupiedInZone, slotInZone } from "./layout.ts";
 
-export const STATE_VERSION = 1;
-export const STORAGE_KEY = "pip-the-mug:v1";
+export const STATE_VERSION = 2;
 
 type Listener = (state: CompanyState) => void;
 
@@ -54,24 +62,30 @@ function paper(current: CompanyState, kind: PaperKind, employeeId: EmployeeId): 
   ].slice(0, 12);
 }
 
+export function rosterIds(current: CompanyState = state): EmployeeId[] {
+  return (Object.keys(current.employees) as EmployeeId[]).filter((id) => current.employees[id]);
+}
+
 function employeeList(current: CompanyState): EmployeeRuntime[] {
-  return EMPLOYEE_IDS.map((id) => current.employees[id]);
+  return rosterIds(current).map((id) => current.employees[id]!);
 }
 
 function zoneSlots(current: CompanyState, zone: Zone, except: EmployeeId): LayoutPose[] {
   return occupiedInZone(current.employees, zone, except);
 }
 
-export function createDefaultState(): CompanyState {
-  const employees = {} as Record<EmployeeId, EmployeeRuntime>;
-  for (const record of STAFF) {
-    employees[record.id] = {
-      id: record.id,
+export function createDefaultState(seed: DeskSeed = "open"): CompanyState {
+  const employees: CompanyState["employees"] = {};
+  for (const id of rosterFor(seed)) {
+    const record = STAFF_BY_ID[id];
+    const demo = seed === "demo" && isDemoId(id);
+    employees[id] = {
+      id,
       title: record.defaultTitle,
-      zone: record.defaultZone,
+      zone: demo ? DEMO_ZONES[id] : record.defaultZone,
       standing: "active",
-      reportsTo: record.reportsTo,
-      pose: { ...DEFAULT_LAYOUT[record.id] },
+      reportsTo: demo ? DEMO_REPORTS[id] : record.reportsTo,
+      pose: { ...(demo ? DEMO_LAYOUT[id] : DEFAULT_LAYOUT[id]) },
       promotedAtQuarter: null,
       reviews: [],
       pips: [],
@@ -79,6 +93,7 @@ export function createDefaultState(): CompanyState {
   }
   return {
     version: STATE_VERSION,
+    seed,
     quarter: 3,
     deskLeadId: "monitor",
     soundEnabled: false,
@@ -107,43 +122,89 @@ function emit(): void {
 
 function persist(): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(storageKey(state.seed), JSON.stringify(state));
   } catch {
     /* private mode */
   }
 }
 
-export function loadState(): CompanyState {
+function migrateLegacyOpenDesk(): void {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    if (localStorage.getItem(storageKey("open"))) return;
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!legacy) return;
+    const parsed = JSON.parse(legacy) as CompanyState;
+    parsed.version = STATE_VERSION;
+    parsed.seed = "open";
+    parsed.pendingTermination = parsed.pendingTermination ?? null;
+    localStorage.setItem(storageKey("open"), JSON.stringify(parsed));
+  } catch {
+    /* ignore */
+  }
+}
+
+function clipToRoster(parsed: CompanyState, seed: DeskSeed): CompanyState {
+  const defaults = createDefaultState(seed);
+  const allowed = rosterFor(seed);
+  const allowedSet = new Set(allowed);
+  const employees: CompanyState["employees"] = {};
+  for (const id of allowed) {
+    const emp = parsed.employees[id] ?? defaults.employees[id]!;
+    employees[id] = {
+      ...emp,
+      reviews: emp.reviews ?? [],
+      pips: emp.pips ?? [],
+    };
+  }
+  const pending = parsed.pendingTermination;
+  return {
+    ...parsed,
+    version: STATE_VERSION,
+    seed,
+    deskLeadId: allowedSet.has(parsed.deskLeadId) ? parsed.deskLeadId : "monitor",
+    employees,
+    alumni: (parsed.alumni ?? []).filter((row) => allowedSet.has(row.employeeId)),
+    papers: (parsed.papers ?? []).filter((item) => allowedSet.has(item.employeeId)),
+    activity: (parsed.activity ?? []).filter((entry) => !entry.employeeId || allowedSet.has(entry.employeeId)),
+    pendingTermination: pending && allowedSet.has(pending.employeeId) ? pending : null,
+  };
+}
+
+export function loadState(seed: DeskSeed = "open"): CompanyState {
+  try {
+    if (seed === "open") migrateLegacyOpenDesk();
+    const raw = localStorage.getItem(storageKey(seed));
     if (!raw) {
-      state = createDefaultState();
+      state = createDefaultState(seed);
+      persist();
+      applySeedPlot(seed);
       return state;
     }
     const parsed = JSON.parse(raw) as CompanyState;
-    if (parsed.version !== STATE_VERSION || !parsed.employees?.mug) {
-      state = createDefaultState();
+    if (!parsed.employees?.mug) {
+      state = createDefaultState(seed);
+      persist();
+      applySeedPlot(seed);
       return state;
     }
-    state = { ...parsed, pendingTermination: parsed.pendingTermination ?? null };
+    state = clipToRoster(parsed, seed);
+    persist();
     return state;
   } catch {
-    state = createDefaultState();
+    state = createDefaultState(seed);
+    persist();
+    applySeedPlot(seed);
     return state;
   }
 }
 
-export function replaceState(next: CompanyState, silent = false): void {
-  state = next;
-  if (!silent) emit();
-  else persist();
-}
-
 export function resetCompany(actor: Actor): CompanyState {
-  const next = createDefaultState();
+  const seed = state.seed;
+  const next = createDefaultState(seed);
   next.activity = log(next, "reset_company", actor, "Company records reset to the last clean quarter.");
   state = next;
   emit();
+  applySeedPlot(seed);
   return state;
 }
 
@@ -360,6 +421,7 @@ export function beginPendingTermination(
   actor: Actor,
 ): { created: boolean; pending: PendingTermination } {
   if (state.pendingTermination) {
+    emit();
     return { created: false, pending: state.pendingTermination };
   }
   const pending: PendingTermination = {
@@ -413,4 +475,58 @@ export function closeQuarter(actor: Actor): { ok: boolean; summary: string } {
   };
   emit();
   return { ok: true, summary };
+}
+
+function applySeedPlot(seed: DeskSeed): void {
+  if (seed === "open") return;
+  writeReview(
+    "pen",
+    {
+      rating: 5,
+      summary:
+        "Pen continues to produce nearly all written output on Desk 4B. Colleagues still borrow without tickets. Cartridge request remains open.",
+      strengths: ["Volume", "Reliability", "The only signed expense report"],
+      concerns: [
+        "Barrel wear",
+        seed === "qa" ? "No backup because Second Pen will not uncap" : "Single point of failure for written output",
+      ],
+    },
+    "human",
+  );
+  writeReview(
+    "mug",
+    {
+      rating: 2,
+      summary:
+        "Retention of the current serving is now a three-week event. Emptying was discussed. Emptying did not occur.",
+      strengths: ["Has not spilled", "Perfect attendance"],
+      concerns: ["Contents", "Film", "Initiative"],
+    },
+    "human",
+  );
+  if (seed === "qa") {
+    writeReview(
+      "pen-2",
+      {
+        rating: 3,
+        summary: "Still capped. Still aligning on a writing strategy. Still here.",
+        strengths: ["Has not dried out"],
+        concerns: ["Output is one faint line from a pocket"],
+      },
+      "human",
+    );
+  }
+  putOnPip(
+    "plant",
+    {
+      reason: "Morale contribution is visual and declining. Two leaves remain.",
+      goals: [
+        "Receive water without a shared-responsibility ticket",
+        "Produce a new leaf",
+        "Stop submitting green-adjacent standups",
+      ],
+      days: 60,
+    },
+    "human",
+  );
 }

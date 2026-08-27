@@ -41,6 +41,15 @@ export function renderPanel(
 
   const record = STAFF_BY_ID[selectedId];
   const emp = state.employees[selectedId];
+  if (!record || !emp) {
+    return `
+      <aside class="panel panel-empty" aria-label="Personnel file">
+        <p class="panel-kicker">Personnel file</p>
+        <h2>Select an employee</h2>
+        <p class="lede">That file is not on this desk.</p>
+      </aside>
+    `;
+  }
   const manager = emp.reportsTo && emp.standing !== "terminated" ? STAFF_BY_ID[emp.reportsTo] : null;
   const open = activePip(emp);
   const term = state.alumni.find((row) => row.employeeId === selectedId);

@@ -1,14 +1,50 @@
 # PIP the Mug
 
+MIT licensed. The `LICENSE` file at the repo root is the open source license. On GitHub it must show as MIT in the About box at the top of the repository page.
+
+This repository is the full project: TypeScript source under `src/`, PixelLab sprites under `public/sprites/`, the Vite app shell in `index.html`, and the instructions in this README. `pnpm i && pnpm dev` is enough to run it. There is no backend, no model, and no API key.
+
 PIP the Mug is a top-down desk. Thirteen objects on it are the staff of Desk 4B at Desktop Holdings, and each one has a personnel file with a backstory, old reviews, and a short incident history. You are upper management. Your browser's agent is HR. It reads files, writes Q3 reviews, issues Performance Improvement Plans, promotes, moves people between desk zones, and, if you confirm, terminates them. The Mug has been retaining the same serving for three weeks. The Desk Plant is Chief Morale Officer, is down to two leaves, and reports that it is still green-adjacent.
 
-The tools run in the page. There is no backend, no model, and no API key anywhere in this repo. Company state is one versioned JSON document in `localStorage` under `pip-the-mug:v1`, and the Reset company button in the top bar clears it back to a fresh quarter. Every HR action also works by hand: click an object to open its file, fill the form, drag it to another zone. So a browser with no WebMCP support still runs the whole thing, and the agent is the optional part.
+Company state is one versioned JSON document in `localStorage` per seed (`pip-the-mug:v2:open`, `pip-the-mug:v2:demo`, `pip-the-mug:v2:qa`). Reset company clears only the seed you are looking at. Every HR action also works by hand: click an object to open its file, fill the form, drag it to another zone. So a browser with no WebMCP support still runs the whole thing, and the agent is the optional part.
+
+## Seeds
+
+The full 13-person dataset stays in the source. What you see on the desk is the selected seed, not a CSS hide.
+
+| URL | Seed | Roster | Starting plot |
+| --- | --- | --- | --- |
+| `/`, `/demo`, or `?demo=1` | `demo` | 8 contemporary objects | Mug 2, Pen 5, Plant on a 60-day PIP |
+| `/qa` or `?qa=1` | `qa` | All 13 | Mug 2, Pen 5, Second Pen 3, Plant on a 60-day PIP |
+
+Public demo roster: Monitor, Mug, Ballpoint Pen, Desk Plant, USB Hub, Phone Charger, Webcam Cover, Stress Ball.
+
+QA-only: Coaster, Second Ballpoint Pen, Sticky Notes, Scissors, Stapler. Their biographies stay in the QA seed.
+
+Demo reporting lines: Monitor is Interim Desk Lead. Mug, Plant, USB Hub, Webcam Cover, and Stress Ball report to Monitor. Ballpoint Pen and Phone Charger report to USB Hub.
+
+Each seed has its own `localStorage` key. Opening `/` does not overwrite a QA desk. Reset company rebuilds the current seed only.
 
 ## WebMCP
 
 At startup the app looks for `document.modelContext` and uses it if `registerTool` is a function. If that is missing it falls back to `navigator.modelContext`. If neither exists, a banner at the top of the page says so, points at Chrome 146 with `chrome://flags/#enable-webmcp-testing`, links the origin trial, and reminds you that manual mode still works. When a context is found, the same banner names which one.
 
-Tools are registered with JSON Schema inputs and descriptions written for an agent to read, not for a docs page. Every call returns a structured object plus a one-line `summary`. The whole set is torn down and rebuilt on every state change, because which tools exist depends on what has happened at the desk.
+Registration is the standard WebMCP call, from `src/webmcp/register.ts`:
+
+```js
+document.modelContext.registerTool({
+  name: "list_staff",
+  description: "List current Desk 4B staff",
+  inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  execute: async (input) => {
+    /* returns { ok, summary, staff } */
+  },
+});
+```
+
+The live page registers nine tools that way: `list_staff`, `get_personnel_file`, `get_org_chart`, `write_review`, `put_on_pip`, `resolve_pip`, `promote`, `relocate`, `terminate`.
+
+Tools are registered with JSON Schema inputs and descriptions written for an agent to read, not for a docs page. Employee id enums come from the live roster. Every call returns a structured object plus a one-line `summary`. The whole set is torn down and rebuilt on every state change, because which tools exist depends on what has happened at the desk.
 
 | Tool | What it does |
 | --- | --- |
@@ -24,9 +60,9 @@ Tools are registered with JSON Schema inputs and descriptions written for an age
 
 Four availability rules matter before you point an agent at this.
 
-`resolve_pip` is only registered while at least one PIP is open. No plans, no tool.
+`resolve_pip` is only registered while at least one PIP is open. No plans, no tool. The public demo starts Plant on a 60-day PIP, so all nine tools are present.
 
-`terminate` disappears for anyone promoted in the current quarter. HR cannot fire someone it just promoted, at least not until Q4.
+`terminate` stays registered after a same-quarter promotion. Calling it on that employee returns `ok: false` with a cooling-off explanation and does not open SEP-1. Alumni also return `ok: false`.
 
 Once an object is terminated it keeps showing up in `list_staff` as alumni, but every write tool refuses it. Alumni are read-only.
 
@@ -40,14 +76,14 @@ Once an object is terminated it keeps showing up in `list_staff` as alumni, but 
 pnpm i && pnpm dev
 ```
 
-Click the Mug. Read the file, note the film. File a review from the panel, drag the Second Ballpoint Pen into the drawer, put the Plant on a 60 day plan. Terminate still opens the Form SEP-1 dialog and waits for you.
+Open `/`. Click the Mug. Read the file, note the film. File a review from the panel, drag the Pen, put the Plant's PIP through. Terminate still opens the Form SEP-1 dialog and waits for you. Open `/qa` if you want Coaster and the rest of the 13.
 
 ### With an agent
 
 1. Chrome 146 or newer.
 2. Turn on `chrome://flags/#enable-webmcp-testing` and relaunch the browser.
 3. Install a WebMCP inspector extension so you can see and call the registered tools.
-4. Open the page on `localhost` or over https. The banner should read "WebMCP is available", and the inspector should list nine tools, or eight if nobody is on a PIP.
+4. Open `/` on `localhost` or over https. The banner should read "WebMCP is available", and the inspector should list nine tools.
 5. Ask for something HR-shaped: "Run Q3 performance reviews on Desk 4B."
 
 Origin trial registration: https://developer.chrome.com/origintrials/#/register_trial/4163014905550602241
@@ -60,31 +96,11 @@ pnpm dev      # vite dev server
 pnpm build    # tsc --noEmit, then a static build into dist/
 ```
 
-Vite and TypeScript are the only dependencies. For a desk that already has history on it, open `/demo` or add `?demo=1`: the Pen has a 5, the Mug has a 2, the Second Pen has a 3, and the Plant is 60 days into a plan it is not going to pass. The demo seed replaces whatever is in `localStorage`, so do not load it over a state you wanted to keep.
+Vite and TypeScript are the only dependencies.
 
 ## Deploy
 
-Netlify, static, no functions. `netlify.toml` sets `pnpm build` as the command and `dist` as the publish directory, rewrites `/demo` and everything else to `index.html`, and sends `Origin-Agent-Cluster: ?1`. Any static host works if you copy those two redirects. Serve it over https or WebMCP will not be there to detect.
-
-## Demo script
-
-Forty seconds, from a fresh `/demo`.
-
-**0:00** Open `/demo`. Point out the desk, the ticker, and that the Plant is already wearing a yellow PIP sticker.
-
-**0:05** Tell the agent: "Run Q3 performance reviews on Desk 4B." It calls `list_staff`, reads a few files with `get_personnel_file`, then starts filing.
-
-**0:12** Reviews land. Open the HR Activity Log at the bottom and every entry is tagged Agent. Click an employee and the filled Form PR-12 is in the panel.
-
-**0:20** The Mug scores a 2. The agent calls `put_on_pip` on its own, or you ask it to. A second yellow sticker appears, and `resolve_pip` shows up in the inspector now that a plan is open.
-
-**0:26** Say: "Terminate the mug." The tool returns `requires_user_action` and Form SEP-1 opens. The agent must say: click Confirm termination. It must not click the control.
-
-**0:32** You click Confirm. The Mug slides into the Donated / Sink box, its name goes on the alumni wall, and its write tools vanish from the tool list.
-
-**0:36** Say: "Promote the pen." The Ballpoint Pen moves to the prime spot by the monitor with a new title, and `terminate` is now unavailable for it until next quarter. End on the org chart.
-
-Reset company puts everyone back.
+Vercel, static, no functions. Vite builds into `dist`. `vercel.json` rewrites `/demo`, `/qa`, and other app routes to `index.html`, and sends `Origin-Agent-Cluster: ?1` so WebMCP can run. Serve it over https or the browser will not expose a model context.
 
 ## License
 

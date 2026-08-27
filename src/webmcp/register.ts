@@ -2,6 +2,21 @@ import { subscribe } from "../state/store";
 import { detectWebMcp } from "./detect";
 import { buildTools } from "./tools";
 
+/**
+ * Tools register on the page with the WebMCP API:
+ *
+ * document.modelContext.registerTool({
+ *   name: "list_staff",
+ *   description: "List current Desk 4B staff",
+ *   inputSchema: { type: "object", properties: {}, additionalProperties: false },
+ *   execute: async (input) => { return { ok: true }; },
+ * });
+ *
+ * navigator.modelContext.registerTool is the fallback. Live names:
+ * list_staff, get_personnel_file, get_org_chart, write_review, put_on_pip,
+ * resolve_pip, promote, relocate, terminate.
+ */
+
 let abort: AbortController | null = null;
 let generation = 0;
 let started = false;

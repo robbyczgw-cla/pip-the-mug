@@ -1,5 +1,4 @@
 import type { EmployeeId, PipDays, Zone } from "./types";
-import { EMPLOYEE_IDS } from "./types";
 import { playPaperShuffle } from "./lib/audio";
 import { prefersReducedMotion } from "./lib/dom";
 import { enqueue } from "./state/queue";
@@ -22,14 +21,14 @@ import {
   writeReview,
 } from "./state/store";
 import { renderHeader } from "./ui/header";
-import { renderDeskSvg } from "./ui/desk";
+import { empTransform, isFeatured, renderDeskSvg } from "./ui/desk";
 import { renderPanel, type FormMode } from "./ui/panel";
 import { renderActivityLog } from "./ui/activity-log";
 import { renderConfirm } from "./ui/confirm";
 import { renderBanner } from "./ui/banner";
 import { renderAccess } from "./ui/access";
 import { startWebMcp } from "./webmcp/register";
-import { applyDemoSeed, canRestoreDesk, isDemoRequest, restoreDesk } from "./data/demo";
+import { detectSeed } from "./data/seeds";
 
 interface UiState {
   selectedId: EmployeeId | null;
@@ -47,7 +46,7 @@ let skipNextClick = false;
 let lastFollowedLog = "";
 
 function isEmployeeId(value: string): value is EmployeeId {
-  return EMPLOYEE_IDS.includes(value as EmployeeId);
+  return Boolean(getState().employees[value as EmployeeId]);
 }
 
 function lines(value: FormDataEntryValue | null): string[] {
@@ -79,8 +78,12 @@ function render(): void {
   const log = document.querySelector<HTMLElement>("[data-log]");
   const modal = document.querySelector<HTMLElement>("[data-modal]");
   if (!header || !scene || !panel || !log || !modal || !banner) return;
+  if (ui.selectedId && !state.employees[ui.selectedId]) {
+    ui.selectedId = null;
+    ui.form = null;
+  }
   header.innerHTML = renderHeader(state);
-  banner.innerHTML = renderBanner(canRestoreDesk());
+  banner.innerHTML = renderBanner();
   if (access) access.innerHTML = renderAccess();
   const prior = new Map<string, string>();
   scene.querySelectorAll<SVGGElement>(".emp").forEach((el) => {
@@ -131,7 +134,7 @@ function bindDrag(svg: SVGSVGElement | null): void {
     const id = group?.dataset.id;
     if (!group || !id || !isEmployeeId(id)) return;
     const emp = getState().employees[id];
-    if (emp.standing === "terminated") return;
+    if (!emp || emp.standing === "terminated") return;
     const point = svgPoint(svg, event);
     dragging = { id, startX: point.x, startY: point.y, moved: false, el: group };
     group.setPointerCapture(event.pointerId);
@@ -146,7 +149,11 @@ function bindDrag(svg: SVGSVGElement | null): void {
     if (!dragging.moved) return;
     dragging.el.classList.add("is-dragging");
     const emp = getState().employees[dragging.id];
-    dragging.el.style.transform = `translate(${emp.pose.x + dx}px, ${emp.pose.y + dy}px) rotate(${emp.pose.rotate}deg)`;
+    if (!emp) return;
+    dragging.el.style.transform = empTransform(
+      { x: emp.pose.x + dx, y: emp.pose.y + dy, rotate: emp.pose.rotate },
+      isFeatured(getState(), dragging.id),
+    );
   });
 
   const endDrag = (event: PointerEvent) => {
@@ -168,7 +175,8 @@ function bindDrag(svg: SVGSVGElement | null): void {
         );
         return;
       }
-      relocate(current.id, zone, "human", { x: point.x - 24, y: point.y - 24, rotate: getState().employees[current.id].pose.rotate });
+      const pose = getState().employees[current.id]?.pose;
+      relocate(current.id, zone, "human", { x: point.x - 24, y: point.y - 24, rotate: pose?.rotate ?? 0 });
     });
   };
 
@@ -231,8 +239,7 @@ function handleForm(form: HTMLFormElement): void {
 }
 
 export function mount(root: HTMLElement): void {
-  loadState();
-  if (isDemoRequest()) applyDemoSeed();
+  loadState(detectSeed());
   startWebMcp();
   root.innerHTML = `
     <div data-header></div>
@@ -277,17 +284,12 @@ export function mount(root: HTMLElement): void {
       closeQuarter("human");
       return;
     }
-    if (target.closest("[data-action=restore-desk]")) {
-      restoreDesk();
-      ui.selectedId = null;
-      ui.form = null;
-      return;
-    }
     if (target.closest("[data-action=reset-company]")) {
       if (window.confirm("Reset Desk 4B to a clean quarter? This clears reviews, PIPs, and alumni.")) {
         resetCompany("human");
         ui.selectedId = null;
         ui.form = null;
+        render();
       }
       return;
     }
@@ -314,7 +316,7 @@ export function mount(root: HTMLElement): void {
         return;
       }
       if (mode === "promote") {
-        const title = window.prompt("New title", getState().employees[ui.selectedId].title);
+        const title = window.prompt("New title", getState().employees[ui.selectedId]?.title ?? "");
         if (title) {
           void enqueue(() => promote(ui.selectedId!, title, "human"));
         }

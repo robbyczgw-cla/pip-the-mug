@@ -1,5 +1,5 @@
-import { STAFF_BY_ID } from "../data/staff";
-import type { CompanyState, EmployeeId } from "../types";
+import { STAFF_BY_ID } from "../data/staff.ts";
+import type { CompanyState, EmployeeId } from "../types.ts";
 
 export interface OrgNode {
   id: EmployeeId;
@@ -16,7 +16,7 @@ export function orgChart(state: CompanyState): {
 } {
   const nodes: OrgNode[] = [];
   for (const emp of Object.values(state.employees)) {
-    if (emp.standing === "terminated") continue;
+    if (!emp || emp.standing === "terminated") continue;
     const record = STAFF_BY_ID[emp.id];
     nodes.push({
       id: emp.id,
@@ -25,11 +25,20 @@ export function orgChart(state: CompanyState): {
       standing: emp.standing,
       reportsTo: emp.id === state.deskLeadId ? null : emp.reportsTo,
       reports: Object.values(state.employees)
-        .filter((other) => other.standing !== "terminated" && other.reportsTo === emp.id && other.id !== state.deskLeadId)
-        .map((other) => other.id),
+        .filter(
+          (other) =>
+            Boolean(other) &&
+            other!.standing !== "terminated" &&
+            other!.reportsTo === emp.id &&
+            other!.id !== state.deskLeadId,
+        )
+        .map((other) => other!.id),
     });
   }
   const lead = state.employees[state.deskLeadId];
+  if (!lead) {
+    return { interimDeskLead: { id: "monitor", name: "Monitor", title: "Interim Desk Lead" }, nodes };
+  }
   return {
     interimDeskLead: {
       id: lead.id,
@@ -41,7 +50,9 @@ export function orgChart(state: CompanyState): {
 }
 
 export function listStaffRows(state: CompanyState) {
-  return Object.values(state.employees).map((emp) => {
+  return Object.values(state.employees)
+    .filter((emp): emp is NonNullable<typeof emp> => Boolean(emp))
+    .map((emp) => {
     const record = STAFF_BY_ID[emp.id];
     const openPip = emp.pips.find((pip) => !pip.outcome);
     return {

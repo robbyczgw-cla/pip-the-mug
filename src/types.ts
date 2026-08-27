@@ -16,6 +16,8 @@ export const EMPLOYEE_IDS = [
 
 export type EmployeeId = (typeof EMPLOYEE_IDS)[number];
 
+export type DeskSeed = "open" | "demo" | "qa";
+
 export type Zone = "prime" | "standard" | "drawer" | "shelf" | "sink";
 
 export type Standing = "active" | "on_pip" | "terminated";
@@ -129,10 +131,11 @@ export interface EmployeeRuntime {
 
 export interface CompanyState {
   version: number;
+  seed: DeskSeed;
   quarter: number;
   deskLeadId: EmployeeId;
   soundEnabled: boolean;
-  employees: Record<EmployeeId, EmployeeRuntime>;
+  employees: Partial<Record<EmployeeId, EmployeeRuntime>>;
   alumni: TerminationRecord[];
   activity: ActivityEntry[];
   papers: PaperItem[];

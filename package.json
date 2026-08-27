@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "node --experimental-strip-types --test src/webmcp/confirm.test.ts"
+    "test": "node --experimental-strip-types --test src/**/*.test.ts"
   },
   "devDependencies": {
     "typescript": "~5.9.2",

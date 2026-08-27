@@ -1,13 +1,27 @@
 import { COMPANY } from "../data/staff";
 import { escapeHtml } from "../lib/dom";
 import { STAFF_BY_ID } from "../data/staff";
-import type { CompanyState } from "../types";
+import type { CompanyState, DeskSeed } from "../types";
 
-const TICKER =
-  "Q3 FY26 · All reviews due Friday · Form 19-B required for mug-related incidents · Do not water the morale officer without a ticket · Stapler is probably ours · Termination requires Upper Management confirmation ·";
+function ticker(seed: DeskSeed): string {
+  const extras =
+    seed === "demo"
+      ? " Webcam cover stays on during standups ·"
+      : " Stapler is probably ours ·";
+  return `Q3 FY26 · All reviews due Friday · Form 19-B required for mug-related incidents · Do not water the morale officer without a ticket ·${extras} Termination requires Upper Management confirmation ·`;
+}
+
+function seedLabel(state: CompanyState): string {
+  const roster = Object.keys(state.employees).length;
+  const live = Object.values(state.employees).filter((emp) => emp && emp.standing !== "terminated").length;
+  if (state.seed === "demo") return `Public demo · ${roster}`;
+  if (state.seed === "qa") return `QA seed · ${roster}`;
+  return `${live} on desk`;
+}
 
 export function renderHeader(state: CompanyState): string {
-  const lead = STAFF_BY_ID[state.deskLeadId];
+  const lead = STAFF_BY_ID[state.deskLeadId] ?? STAFF_BY_ID.monitor;
+  const copy = ticker(state.seed);
   return `
     <header class="topbar">
       <div class="brand">
@@ -17,11 +31,11 @@ export function renderHeader(state: CompanyState): string {
           <h1>PIP the Mug</h1>
         </div>
       </div>
-      <p class="desk-tag">${COMPANY.desk} · Q${state.quarter} ${COMPANY.fiscalYear} · Lead: ${escapeHtml(lead.name)}</p>
+      <p class="desk-tag">${COMPANY.desk} · Q${state.quarter} ${COMPANY.fiscalYear} · Lead: ${escapeHtml(lead.name)} · ${seedLabel(state)}</p>
       <div class="ticker" aria-label="HR compliance ticker">
         <div class="ticker-track">
-          <span>${TICKER}</span>
-          <span aria-hidden="true">${TICKER}</span>
+          <span>${copy}</span>
+          <span aria-hidden="true">${copy}</span>
         </div>
       </div>
       <div class="topbar-actions">

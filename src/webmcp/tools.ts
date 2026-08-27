@@ -8,6 +8,7 @@ import {
   beginPendingTermination,
   canTerminate,
   getState,
+  rosterIds,
   promote,
   putOnPip,
   relocate,
@@ -16,7 +17,7 @@ import {
   terminate,
   writeReview,
 } from "../state/store";
-import { EMPLOYEE_IDS, type EmployeeId, type PipDays, type PipOutcome, type Zone } from "../types";
+import type { EmployeeId, PipDays, PipOutcome, Zone } from "../types";
 
 export interface WebMcpTool {
   name: string;
@@ -27,12 +28,10 @@ export interface WebMcpTool {
   execute: (input: Record<string, unknown>, extra?: unknown) => Promise<unknown>;
 }
 
-const ID_ENUM = [...EMPLOYEE_IDS];
-
 function asId(value: unknown): EmployeeId | null {
-  return typeof value === "string" && EMPLOYEE_IDS.includes(value as EmployeeId)
-    ? (value as EmployeeId)
-    : null;
+  if (typeof value !== "string") return null;
+  const id = value as EmployeeId;
+  return getState().employees[id] ? id : null;
 }
 
 function lines(value: unknown): string[] {
@@ -46,6 +45,13 @@ function lines(value: unknown): string[] {
 function filePayload(id: EmployeeId) {
   const record = STAFF_BY_ID[id];
   const emp = getState().employees[id];
+  if (!emp) {
+    return {
+      id,
+      name: record.name,
+      error: "unknown_id",
+    };
+  }
   const open = activePip(emp);
   return {
     id,
@@ -75,12 +81,13 @@ function filePayload(id: EmployeeId) {
 
 export function buildTools(): WebMcpTool[] {
   const state = getState();
+  const ID_ENUM = rosterIds(state);
   const tools: WebMcpTool[] = [
     {
       name: "list_staff",
       title: "List staff",
       description:
-        "List every Desk 4B employee with current title, department, tenure, standing (active, on_pip, terminated), zone, and last review rating. Call this first to pick who to review, PIP, promote, relocate, or terminate. Terminated staff appear as alumni and have no further write tools.",
+        `List current Desk 4B staff with title, department, tenure, standing (active, on_pip, terminated), zone, and last review rating. This desk has ${ID_ENUM.length} employees. Call this first. Terminated staff appear as alumni and have no further write tools. Ids not on this desk are invalid.`,
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
       annotations: { readOnlyHint: true },
       execute: async () => {
@@ -96,7 +103,7 @@ export function buildTools(): WebMcpTool[] {
       name: "get_personnel_file",
       title: "Get personnel file",
       description:
-        "Open the full personnel file for one employee id (mug, pen, pen-2, monitor, plant, charger, sticky-notes, scissors, stapler, coaster, webcam-cover, usb-hub, stress-ball). Returns backstory, historical and live reviews, incidents, and any open PIP. Use after list_staff when you need the narrative before writing a review or PIP.",
+        `Open the full personnel file for one employee id (${ID_ENUM.join(", ")}). Returns backstory, historical and live reviews, incidents, and any open PIP. Use after list_staff. Ids not on this desk are invalid.`,
       inputSchema: {
         type: "object",
         properties: {
@@ -110,6 +117,7 @@ export function buildTools(): WebMcpTool[] {
         const id = asId(input.id);
         if (!id) return { ok: false, summary: "Unknown employee id.", error: "unknown_id" };
         const file = filePayload(id);
+        if ("error" in file) return { ok: false, summary: "Unknown employee id.", error: "unknown_id" };
         return {
           ok: true,
           summary: `Opened file for ${STAFF_BY_ID[id].name}: ${file.standing}, zone ${file.zone}.`,
@@ -135,7 +143,10 @@ export function buildTools(): WebMcpTool[] {
     },
   ];
 
-  const writable = Object.values(state.employees).filter((emp) => emp.standing !== "terminated");
+  const writable = Object.values(state.employees).filter(
+    (emp): emp is NonNullable<typeof emp> => Boolean(emp) && emp.standing !== "terminated",
+  );
+  const LIVE_ENUM = writable.map((emp) => emp.id);
   if (writable.length === 0) return tools;
 
   tools.push(
@@ -147,7 +158,7 @@ export function buildTools(): WebMcpTool[] {
       inputSchema: {
         type: "object",
         properties: {
-          id: { type: "string", enum: ID_ENUM, description: "Employee id." },
+          id: { type: "string", enum: ID_ENUM, description: "Employee id from list_staff. Alumni return ok: false." },
           rating: { type: "integer", minimum: 1, maximum: 5, description: "Overall rating, 1 worst, 5 best." },
           summary: { type: "string", description: "Straight-faced review paragraph." },
           strengths: { type: "array", items: { type: "string" }, description: "Strength bullets." },
@@ -186,7 +197,7 @@ export function buildTools(): WebMcpTool[] {
       inputSchema: {
         type: "object",
         properties: {
-          id: { type: "string", enum: ID_ENUM },
+          id: { type: "string", enum: LIVE_ENUM },
           reason: { type: "string", description: "Why the plan is issued." },
           goals: { type: "array", items: { type: "string" }, description: "Plan goals." },
           days: { type: "integer", enum: [30, 60, 90], description: "Plan length." },
@@ -215,7 +226,7 @@ export function buildTools(): WebMcpTool[] {
       inputSchema: {
         type: "object",
         properties: {
-          id: { type: "string", enum: ID_ENUM },
+          id: { type: "string", enum: LIVE_ENUM },
           new_title: { type: "string", description: "Title after promotion." },
         },
         required: ["id", "new_title"],
@@ -236,7 +247,7 @@ export function buildTools(): WebMcpTool[] {
       inputSchema: {
         type: "object",
         properties: {
-          id: { type: "string", enum: ID_ENUM },
+          id: { type: "string", enum: LIVE_ENUM },
           zone: { type: "string", enum: ["prime", "standard", "drawer", "shelf"], description: "Destination zone." },
         },
         required: ["id", "zone"],
@@ -255,7 +266,8 @@ export function buildTools(): WebMcpTool[] {
     },
   );
 
-  if (staffOnPip().length > 0) {
+  const onPip = staffOnPip();
+  if (onPip.length > 0) {
     tools.push({
       name: "resolve_pip",
       title: "Resolve PIP",
@@ -264,7 +276,7 @@ export function buildTools(): WebMcpTool[] {
       inputSchema: {
         type: "object",
         properties: {
-          id: { type: "string", enum: ID_ENUM, description: "Employee currently on a PIP." },
+          id: { type: "string", enum: onPip.map((emp) => emp.id), description: "Employee currently on a PIP." },
           outcome: { type: "string", enum: ["passed", "failed"] },
         },
         required: ["id", "outcome"],
@@ -283,74 +295,74 @@ export function buildTools(): WebMcpTool[] {
     });
   }
 
-  const termable = writable.filter((emp) => canTerminate(emp, state.quarter));
-  if (termable.length > 0) {
-    tools.push({
-      name: "terminate",
-      title: "Terminate",
-      description:
-        "SENSITIVE. Request separation of an employee from Desk 4B. If the client supports a working confirmation callback, the tool waits for that answer. If the callback is missing or throws unsupported (including the Codex WebMCP shim), the tool does NOT terminate. It opens Form SEP-1 on the page and returns status requires_user_action. Pause and ask the user to click Confirm termination themselves. Do not click that control. Unavailable after a same-quarter promotion or for alumni.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          id: { type: "string", enum: ID_ENUM },
-          reason: { type: "string", description: "Separation reason for Form SEP-1." },
-        },
-        required: ["id", "reason"],
-        additionalProperties: false,
+  tools.push({
+    name: "terminate",
+    title: "Terminate",
+    description:
+      "SENSITIVE. Request separation of an employee from Desk 4B. This tool stays registered while anyone is still employed. A same-quarter promotion does not remove the tool. Calling it on a promoted employee returns ok: false with a cooling-off explanation and does not open SEP-1. Alumni return ok: false. If the client has a working confirmation callback, the tool waits for that answer. If the callback is missing or unsupported, including the Codex WebMCP shim, catch that internally. Do not surface a throw. Open Form SEP-1 on the page and return status requires_user_action. Pause and ask the user to click Confirm termination themselves. Do not click that control.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "string", enum: LIVE_ENUM },
+        reason: { type: "string", description: "Separation reason for Form SEP-1." },
       },
-      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
-      execute: async (input, extra) => {
-        const id = asId(input.id);
-        if (!id) return { ok: false, summary: "Unknown employee id." };
-        const emp = getState().employees[id];
-        const name = STAFF_BY_ID[id].name;
-        if (!canTerminate(emp, getState().quarter)) {
-          return {
-            ok: false,
-            summary: `${name} cannot be terminated this quarter (alumni or recent promotion).`,
-          };
-        }
-        const open = getState().pendingTermination;
-        if (open) {
-          return {
-            ok: false,
-            status: "requires_user_action",
-            action: "confirm_termination_in_page",
-            employeeId: open.employeeId,
-            requestId: open.requestId,
-            summary:
-              "Termination is pending. Ask the user to confirm it in the visible SEP-1 panel. Do not click the confirmation control for them.",
-          };
-        }
-        const reason = String(input.reason ?? "Not specified.");
-        const decision = await requestTerminationConfirmation(
-          extra,
-          `Terminate ${name}? They will be moved to the Donated / Sink box. This cannot be undone except by Reset company.`,
-        );
-        if (decision.kind === "resolved") {
-          if (!decision.confirmed) {
-            return { ok: false, summary: `Termination of ${name} cancelled by upper management.` };
-          }
-          return enqueue(() => {
-            const result = terminate(id, reason, "agent");
-            if (result.ok) playPaperShuffle(getState().soundEnabled);
-            return result;
-          });
-        }
-        const pending = beginPendingTermination(id, reason, "agent");
+      required: ["id", "reason"],
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+    execute: async (input, extra) => {
+      const id = asId(input.id);
+      if (!id) return { ok: false, summary: "Unknown employee id." };
+      const emp = getState().employees[id];
+      const name = STAFF_BY_ID[id].name;
+      if (!emp || emp.standing === "terminated") {
+        return { ok: false, summary: `${name} is alumni and cannot be terminated.` };
+      }
+      if (!canTerminate(emp, getState().quarter)) {
+        return {
+          ok: false,
+          summary: `${name} was promoted this quarter and is in a protected cooling-off period.`,
+        };
+      }
+      const open = getState().pendingTermination;
+      if (open) {
         return {
           ok: false,
           status: "requires_user_action",
           action: "confirm_termination_in_page",
-          employeeId: pending.pending.employeeId,
-          requestId: pending.pending.requestId,
+          employeeId: open.employeeId,
+          requestId: open.requestId,
           summary:
             "Termination is pending. Ask the user to confirm it in the visible SEP-1 panel. Do not click the confirmation control for them.",
         };
-      },
-    });
-  }
+      }
+      const reason = String(input.reason ?? "Not specified.");
+      const decision = await requestTerminationConfirmation(
+        extra,
+        `Terminate ${name}? They will be moved to the Donated / Sink box. This cannot be undone except by Reset company.`,
+      );
+      if (decision.kind === "resolved") {
+        if (!decision.confirmed) {
+          return { ok: false, summary: `Termination of ${name} cancelled by upper management.` };
+        }
+        return enqueue(() => {
+          const result = terminate(id, reason, "agent");
+          if (result.ok) playPaperShuffle(getState().soundEnabled);
+          return result;
+        });
+      }
+      const pending = beginPendingTermination(id, reason, "agent");
+      return {
+        ok: false,
+        status: "requires_user_action",
+        action: "confirm_termination_in_page",
+        employeeId: pending.pending.employeeId,
+        requestId: pending.pending.requestId,
+        summary:
+          "Termination is pending. Ask the user to confirm it in the visible SEP-1 panel. Do not click the confirmation control for them.",
+      };
+    },
+  });
 
   return tools;
 }

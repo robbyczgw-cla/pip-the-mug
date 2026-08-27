@@ -1,4 +1,4 @@
-import type { EmployeeId, LayoutPose, Zone } from "../types";
+import type { EmployeeId, LayoutPose, Zone } from "../types.ts";
 
 export const ZONE_BOX: Record<Zone, { x: number; y: number; w: number; h: number }> = {
   shelf: { x: 188, y: 80, w: 944, h: 72 },
@@ -75,11 +75,12 @@ export function slotInZone(
 }
 
 export function occupiedInZone(
-  employees: Record<EmployeeId, { id: EmployeeId; zone: Zone; pose: LayoutPose }>,
+  employees: Partial<Record<EmployeeId, { id: EmployeeId; zone: Zone; pose: LayoutPose }>>,
   zone: Zone,
   except: EmployeeId,
 ): LayoutPose[] {
   return Object.values(employees)
+    .filter((emp): emp is { id: EmployeeId; zone: Zone; pose: LayoutPose } => Boolean(emp))
     .filter((emp) => emp.id !== except && emp.zone === zone)
     .map((emp) => emp.pose);
 }
