@@ -740,23 +740,6 @@ body {
   cursor: pointer;
 }
 
-.log-list {
-  max-height: 180px;
-  overflow: auto;
-  margin: 0;
-  padding: 0 16px 12px;
-  list-style: none;
-  font-size: 12px;
-}
-
-.log-list li {
-  display: grid;
-  grid-template-columns: 72px 64px 1fr;
-  gap: 8px;
-  padding: 4px 0;
-  border-bottom: 1px dotted rgba(36, 28, 20, 0.2);
-}
-
 .actor-agent { color: var(--navy); }
 .actor-human { color: var(--wood-dark); }
 
@@ -946,7 +929,7 @@ body {
 .checks .check-row {
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   column-gap: 8px;
   margin: 0;
   font-family: var(--sans);
@@ -963,6 +946,7 @@ body {
   margin: 0;
   flex: 0 0 auto;
   justify-self: center;
+  margin-top: 2px;
   accent-color: var(--navy);
 }
 

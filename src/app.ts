@@ -62,10 +62,12 @@ function waitForDrawerClosed(drawer: Element | null): Promise<void> {
   }
   return new Promise((resolve) => {
     let settled = false;
+    let fallback = 0;
     const finish = () => {
       if (settled) return;
       settled = true;
       drawer.removeEventListener("transitionend", onEnd);
+      window.clearTimeout(fallback);
       resolve();
     };
     const onEnd = (event: Event) => {
@@ -75,7 +77,7 @@ function waitForDrawerClosed(drawer: Element | null): Promise<void> {
       finish();
     };
     drawer.addEventListener("transitionend", onEnd);
-    window.setTimeout(finish, 400);
+    fallback = window.setTimeout(finish, 400);
   });
 }
 
@@ -204,6 +206,13 @@ function bindDrag(svg: SVGSVGElement | null): void {
     const dy = point.y - dragging.startY;
     if (Math.hypot(dx, dy) > 6) dragging.moved = true;
     if (!dragging.moved) return;
+    if (ui.selectedId) {
+      ui.selectedId = null;
+      ui.form = null;
+      const drawer = document.querySelector(".drawer");
+      drawer?.classList.remove("is-open");
+      drawer?.setAttribute("aria-hidden", "true");
+    }
     dragging.el.classList.add("is-dragging");
     const emp = getState().employees[dragging.id];
     if (!emp) return;
