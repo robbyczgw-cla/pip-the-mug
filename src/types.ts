@@ -22,7 +22,7 @@ export type Zone = "prime" | "standard" | "drawer" | "shelf" | "sink";
 
 export type Standing = "active" | "on_pip" | "terminated";
 
-export type Actor = "agent" | "human";
+export type Actor = "agent" | "human" | "system";
 
 export type PipDays = 30 | 60 | 90;
 

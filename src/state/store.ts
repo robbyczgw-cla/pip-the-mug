@@ -300,7 +300,10 @@ export function resolvePip(
 ): { ok: boolean; summary: string } {
   const emp = state.employees[id];
   const open = emp ? activePip(emp) : undefined;
-  if (!emp || !open) {
+  if (!emp || emp.standing === "terminated") {
+    return { ok: false, summary: `${id} is alumni. PIP tools are closed.` };
+  }
+  if (!open) {
     return { ok: false, summary: `No open PIP for ${id}.` };
   }
   const pip = { ...open, outcome, resolvedAt: new Date().toISOString() };
@@ -491,7 +494,7 @@ function applySeedPlot(seed: DeskSeed): void {
         seed === "qa" ? "No backup because Second Pen will not uncap" : "Single point of failure for written output",
       ],
     },
-    "human",
+    "system",
   );
   writeReview(
     "mug",
@@ -502,7 +505,7 @@ function applySeedPlot(seed: DeskSeed): void {
       strengths: ["Has not spilled", "Perfect attendance"],
       concerns: ["Contents", "Film", "Initiative"],
     },
-    "human",
+    "system",
   );
   if (seed === "qa") {
     writeReview(
@@ -513,7 +516,7 @@ function applySeedPlot(seed: DeskSeed): void {
         strengths: ["Has not dried out"],
         concerns: ["Output is one faint line from a pocket"],
       },
-      "human",
+      "system",
     );
   }
   putOnPip(
@@ -527,6 +530,6 @@ function applySeedPlot(seed: DeskSeed): void {
       ],
       days: 60,
     },
-    "human",
+    "system",
   );
 }

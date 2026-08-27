@@ -156,7 +156,7 @@ export function buildTools(): WebMcpTool[] {
       name: "write_review",
       title: "Write review",
       description:
-        "File a Q3 performance review for an active employee. rating is 1-5. summary is the official paragraph. strengths and concerns are short bullet strings. A filled Form PR-12 appears on the desk. Use after reading the personnel file. Do not review terminated alumni.",
+        `File a Q${state.quarter} performance review for an active employee. rating is 1-5. summary is the official paragraph. strengths and concerns are short bullet strings. A filled Form PR-12 appears on the desk. Use after reading the personnel file. Do not review terminated alumni.`,
       inputSchema: {
         type: "object",
         properties: {
@@ -289,6 +289,9 @@ export function buildTools(): WebMcpTool[] {
         const id = asId(input.id);
         const outcome = String(input.outcome) as PipOutcome;
         if (!id) return { ok: false, summary: "Unknown employee id." };
+        if (getState().employees[id]?.standing === "terminated") {
+          return { ok: false, summary: `${STAFF_BY_ID[id].name} is alumni. PIP tools are closed.` };
+        }
         if (outcome !== "passed" && outcome !== "failed") {
           return { ok: false, summary: "outcome must be passed or failed." };
         }

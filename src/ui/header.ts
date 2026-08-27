@@ -3,12 +3,12 @@ import { escapeHtml } from "../lib/dom";
 import { STAFF_BY_ID } from "../data/staff";
 import type { CompanyState, DeskSeed } from "../types";
 
-function ticker(seed: DeskSeed): string {
+function ticker(seed: DeskSeed, quarter: number): string {
   const extras =
     seed === "demo"
       ? " Webcam cover stays on during standups ·"
       : " Stapler is probably ours ·";
-  return `Q3 FY26 · All reviews due Friday · Form 19-B required for mug-related incidents · Do not water the morale officer without a ticket ·${extras} Termination requires Upper Management confirmation ·`;
+  return `Q${quarter} FY26 · All reviews due Friday · Form 19-B required for mug-related incidents · Do not water the morale officer without a ticket ·${extras} Termination requires Upper Management confirmation ·`;
 }
 
 function seedLabel(state: CompanyState): string {
@@ -21,7 +21,7 @@ function seedLabel(state: CompanyState): string {
 
 export function renderHeader(state: CompanyState): string {
   const lead = STAFF_BY_ID[state.deskLeadId] ?? STAFF_BY_ID.monitor;
-  const copy = ticker(state.seed);
+  const copy = ticker(state.seed, state.quarter);
   return `
     <header class="topbar">
       <div class="brand">

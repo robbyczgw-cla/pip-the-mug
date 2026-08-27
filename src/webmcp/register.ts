@@ -23,9 +23,12 @@ let started = false;
 let lastSignature = "";
 
 function signature(): string {
-  return buildTools()
-    .map((tool) => tool.name)
-    .join("|");
+  return JSON.stringify(
+    buildTools().map((tool) => ({
+      name: tool.name,
+      inputSchema: tool.inputSchema,
+    })),
+  );
 }
 
 export async function syncWebMcpTools(force = false): Promise<void> {

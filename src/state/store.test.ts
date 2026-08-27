@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { orgChart, listStaffRows } from "./org.ts";
-import { createDefaultState, getState, loadState, resetCompany, rosterIds } from "./store.ts";
+import { createDefaultState, getState, loadState, resetCompany, resolvePip, rosterIds, terminate } from "./store.ts";
 
 function installStorage(): Map<string, string> {
   const mem = new Map<string, string>();
@@ -51,6 +51,7 @@ test("demo and qa persist to different keys and do not clobber each other", () =
   assert.equal(demo.employees.mug?.reviews[0]?.rating, 2);
   assert.equal(demo.employees.pen?.reviews[0]?.rating, 5);
   assert.equal(demo.employees.plant?.standing, "on_pip");
+  assert.equal(demo.activity.every((entry) => entry.actor === "system"), true);
   assert.equal(demo.employees["pen-2"], undefined);
   assert.ok(mem.get("pip-the-mug:v2:demo"));
   assert.equal(mem.get("pip-the-mug:v2:qa"), undefined);
@@ -92,6 +93,15 @@ test("list_staff and org chart follow the selected roster", () => {
   const hub = chart.nodes.find((node) => node.id === "usb-hub");
   assert.ok(hub);
   assert.deepEqual(hub.reports.sort(), ["charger", "pen"]);
+});
+
+test("resolve_pip refuses alumni even with an open PIP still on file", () => {
+  installStorage();
+  loadState("demo");
+  terminate("plant", "test", "human");
+  const result = resolvePip("plant", "passed", "human");
+  assert.equal(result.ok, false);
+  assert.equal(getState().employees.plant?.standing, "terminated");
 });
 
 test("demo org chart omits QA-only reports", () => {
