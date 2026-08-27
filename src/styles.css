@@ -939,14 +939,18 @@ body {
   color: var(--ink);
 }
 
+.paperwork input[type="checkbox"],
 .checks input[type="checkbox"],
 .checks .check-box {
+  display: inline-block;
   width: 14px;
   height: 14px;
-  margin: 0;
+  max-width: 16px;
+  min-width: 14px;
+  margin: 2px 0 0;
+  padding: 0;
   flex: 0 0 auto;
   justify-self: center;
-  margin-top: 2px;
   accent-color: var(--navy);
 }
 
@@ -1002,13 +1006,16 @@ body {
   margin: 0;
   padding: 4px 12px 6px;
   list-style: none;
-  max-height: none;
-  overflow: hidden;
   background: var(--paper);
   border: 2px solid var(--ink);
   border-top: none;
   border-radius: 0 0 3px 3px;
   font-size: 12px;
+}
+
+.log-wrap:not(.is-expanded) .log-list {
+  max-height: none;
+  overflow: hidden;
 }
 
 .log-wrap.is-expanded .log-list {
