@@ -22,21 +22,7 @@ export function renderPanel(
   form: FormMode,
 ): string {
   if (!selectedId) {
-    return `
-      <aside class="panel panel-empty" aria-label="Personnel file">
-        <p class="panel-kicker">Personnel file</p>
-        <h2>Select an employee</h2>
-        <p class="lede">
-          Click a desk object to open its file. You are upper management.
-          Drag objects between zones, or let your browser agent run HR.
-        </p>
-        <ol class="howto">
-          <li>Click or tab to an object.</li>
-          <li>File a review, a PIP, a promotion, or a relocation.</li>
-          <li>Termination needs a confirmation click.</li>
-        </ol>
-      </aside>
-    `;
+    return "";
   }
 
   const record = STAFF_BY_ID[selectedId];

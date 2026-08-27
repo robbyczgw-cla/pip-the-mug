@@ -35,16 +35,21 @@ interface UiState {
   selectedId: EmployeeId | null;
   form: FormMode;
   logOpen: boolean;
+  flashId: EmployeeId | null;
+  flashZone: Zone | null;
 }
 
 const ui: UiState = {
   selectedId: null,
   form: null,
-  logOpen: true,
+  logOpen: false,
+  flashId: null,
+  flashZone: null,
 };
 
 let skipNextClick = false;
 let lastFollowedLog = "";
+let flashTimer = 0;
 
 function isEmployeeId(value: string): value is EmployeeId {
   return Boolean(getState().employees[value as EmployeeId]);
@@ -65,6 +70,16 @@ function followAgent(state: ReturnType<typeof getState>): void {
   if (latest.actor === "agent" && latest.employeeId) {
     ui.selectedId = latest.employeeId;
     ui.form = null;
+    ui.flashId = latest.employeeId;
+    ui.flashZone = state.employees[latest.employeeId]?.zone ?? null;
+    window.clearTimeout(flashTimer);
+    if (!prefersReducedMotion()) {
+      flashTimer = window.setTimeout(() => {
+        ui.flashId = null;
+        ui.flashZone = null;
+        render();
+      }, 480);
+    }
   }
 }
 
@@ -90,7 +105,9 @@ function render(): void {
   scene.querySelectorAll<SVGGElement>(".emp").forEach((el) => {
     if (el.dataset.id && el.style.transform) prior.set(el.dataset.id, el.style.transform);
   });
-  scene.innerHTML = renderDeskSvg(state, ui.selectedId);
+  scene.innerHTML = renderDeskSvg(state, ui.selectedId, { id: ui.flashId, zone: ui.flashZone });
+  panel.classList.toggle("is-open", Boolean(ui.selectedId));
+  panel.setAttribute("aria-hidden", ui.selectedId ? "false" : "true");
   if (!prefersReducedMotion()) {
     scene.querySelectorAll<SVGGElement>(".emp").forEach((el) => {
       const id = el.dataset.id;
@@ -256,9 +273,9 @@ export function mount(root: HTMLElement): void {
     <div data-access></div>
     <main class="workspace">
       <section class="scene" data-scene></section>
-      <div data-panel></div>
     </main>
     <div data-log></div>
+    <aside class="drawer" data-panel aria-hidden="true"></aside>
     <div data-modal></div>
   `;
 

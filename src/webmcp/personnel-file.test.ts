@@ -54,14 +54,11 @@ function setup(seed: "demo" | "qa"): void {
   document.body.innerHTML = `<div data-panel></div><div data-scene></div>`;
   setPersonnelFileOpener(paint);
   loadState(seed);
-  const panel = document.querySelector("[data-panel]");
-  assert.ok(panel);
-  panel.innerHTML = `<aside class="panel panel-empty"><h2>Select an employee</h2></aside>`;
 }
 
 test("get_personnel_file opens the visible Mug and Plant files on the demo seed", async () => {
   setup("demo");
-  assert.match(panelText(), /Select an employee/);
+  assert.equal(panelText().includes("Personnel file for Mug"), false);
   const activityBefore = getState().activity.length;
   const papersBefore = getState().papers.length;
 

@@ -9,9 +9,13 @@ export function renderAccess(): string {
   if (!names.includes("resolve_pip")) notes.push("resolve_pip off");
   if (!names.includes("terminate")) notes.push("terminate off");
   const source = detected.source ?? "manual only";
+  const chips = names.map((name) => `<span class="tool-chip">${name}</span>`).join("");
+  const extra = notes.map((note) => `<span class="tool-chip is-off">${note}</span>`).join("");
   return `
     <p class="access-strip" aria-label="HR systems access">
-      ${names.length} tools · ${source} · ${names.join(" · ")}${notes.length ? ` · ${notes.join(" · ")}` : ""}
+      <span class="tool-count">${names.length} tools</span>
+      <span class="tool-source">${source}</span>
+      ${chips}${extra}
     </p>
   `;
 }

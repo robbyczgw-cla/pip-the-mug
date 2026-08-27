@@ -1,8 +1,14 @@
 import { RENDER_ORDER, STAFF_BY_ID } from "../data/staff.ts";
 import { escapeHtml } from "../lib/dom.ts";
-import type { CompanyState, EmployeeId, LayoutPose } from "../types.ts";
+import type { CompanyState, EmployeeId, LayoutPose, Zone } from "../types.ts";
+import { ZONE_BOX } from "../state/layout.ts";
 import { hasSprite, spriteHref } from "./sprites.ts";
 import { renderObjectSvg } from "./svg-objects.ts";
+
+export interface DeskFlash {
+  id: EmployeeId | null;
+  zone: Zone | null;
+}
 
 function alumniCards(state: CompanyState): string {
   if (state.alumni.length === 0) {
@@ -31,27 +37,46 @@ function alumniCards(state: CompanyState): string {
   return cards + more;
 }
 
-function paperStack(state: CompanyState): string {
+function paperStack(state: CompanyState, selectedId: EmployeeId | null): string {
   const colors = { review: "#f6f0e4", pip: "#e8c547", termination: "#edc4b8" };
   const labels = { review: "PR-12", pip: "PIP-90", termination: "SEP-1" };
-  return state.papers
-    .slice(0, 8)
-    .map((item, index) => {
-      const name = STAFF_BY_ID[item.employeeId].name;
-      const x = 640 + index * 8;
-      const y = 318 + index * 5;
-      const rotate = index % 2 === 0 ? -7 + index : 6 - index;
-      return `
-        <g class="desk-paper" data-id="${item.employeeId}" tabindex="0" role="button"
-           aria-label="${labels[item.kind]} for ${escapeHtml(name)}"
-           transform="translate(${x} ${y}) rotate(${rotate})">
-          <rect width="76" height="96" fill="${colors[item.kind]}" stroke="#241c14" stroke-width="1.3"/>
-          <text x="38" y="22" text-anchor="middle" class="zone-label">${labels[item.kind]}</text>
-          <text x="38" y="42" text-anchor="middle" class="zone-hint">${escapeHtml(name)}</text>
-        </g>
-      `;
-    })
-    .join("");
+  const [newest, ...older] = state.papers;
+  if (!newest) return "";
+  const related = selectedId
+    ? state.papers.filter((item) => item.employeeId === selectedId && item.id !== newest.id)
+    : [];
+  const shown = newest;
+  const name = STAFF_BY_ID[shown.employeeId].name;
+  const active = `
+    <g class="desk-paper is-newest" data-id="${shown.employeeId}" tabindex="0" role="button"
+       aria-label="${labels[shown.kind]} for ${escapeHtml(name)}"
+       transform="translate(648 318) rotate(-4)">
+      <rect width="68" height="86" fill="${colors[shown.kind]}" stroke="#241c14" stroke-width="1.3"/>
+      <text x="34" y="22" text-anchor="middle" class="zone-label">${labels[shown.kind]}</text>
+      <text x="34" y="40" text-anchor="middle" class="zone-hint">${escapeHtml(name)}</text>
+    </g>`;
+  const filed = older.length;
+  if (filed === 0 && related.length === 0) return active;
+  const extras = related.slice(0, 2).map((item, index) => {
+    const extraName = STAFF_BY_ID[item.employeeId].name;
+    return `
+      <g class="desk-paper is-related" data-id="${item.employeeId}" tabindex="0" role="button"
+         aria-label="${labels[item.kind]} for ${escapeHtml(extraName)}"
+         transform="translate(${700 + index * 10} ${410 + index * 6}) rotate(${6 - index})">
+        <rect width="48" height="62" fill="${colors[item.kind]}" stroke="#241c14" stroke-width="1"/>
+        <text x="24" y="18" text-anchor="middle" class="zone-hint">${labels[item.kind]}</text>
+      </g>`;
+  });
+  const stack = older.slice(0, 3).map((_, i) =>
+    `<rect x="${814 + i}" y="${476 + i * 2}" width="50" height="64" fill="#f6f0e4" stroke="#241c14" stroke-width="1"/>`,
+  ).join("");
+  const tray = `
+    <g class="paper-tray">
+      <rect x="806" y="466" width="72" height="88" rx="4" fill="#d9c7a1" stroke="#8b5e34" stroke-width="1.4"/>
+      ${stack}
+      <text x="842" y="548" text-anchor="middle" class="zone-hint">${filed} filed</text>
+    </g>`;
+  return active + extras.join("") + (filed > 0 ? tray : "");
 }
 
 const FEATURED_SCALE = 1.22;
@@ -67,26 +92,32 @@ export function empTransform(pose: LayoutPose, featured: boolean): string {
   return `translate(${pose.x}px, ${pose.y}px) rotate(${pose.rotate}deg) scale(${featured ? FEATURED_SCALE : 1})`;
 }
 
-function objectGroup(id: EmployeeId, state: CompanyState, selectedId: EmployeeId | null): string {
+function objectGroup(
+  id: EmployeeId,
+  state: CompanyState,
+  selectedId: EmployeeId | null,
+  flashId: EmployeeId | null,
+): string {
   const emp = state.employees[id];
   if (!emp) return "";
   const record = STAFF_BY_ID[id];
   const selected = selectedId === id;
   const featured = isFeatured(state, id);
+  const flashing = flashId === id;
   const label = `${record.name}, ${emp.title}, ${emp.standing}`;
   const pip =
     emp.standing === "on_pip"
       ? hasSprite("pip-sticker")
-        ? `<image class="emp-sprite" href="${spriteHref("pip-sticker")}" x="36" y="-8" width="28" height="28"/>`
+        ? `<image class="emp-sprite" href="${spriteHref("pip-sticker")}" x="36" y="-10" width="22" height="22"/>`
         : `<g class="pip-badge-g">
-             <rect x="34" y="-6" width="28" height="14" fill="#e8c547" stroke="#241c14"/>
-             <text class="pip-badge" x="48" y="5" text-anchor="middle" fill="#241c14">PIP</text>
+             <rect x="36" y="-8" width="24" height="12" fill="#e8c547" stroke="#241c14"/>
+             <text class="pip-badge" x="48" y="2" text-anchor="middle" fill="#241c14">PIP</text>
            </g>`
       : "";
 
   return `
     <g
-      class="emp ${selected ? "is-selected" : ""} ${emp.standing === "terminated" ? "is-terminated" : ""} ${featured ? "is-featured" : ""}"
+      class="emp ${selected ? "is-selected" : ""} ${emp.standing === "terminated" ? "is-terminated" : ""} ${featured ? "is-featured" : ""} ${flashing ? "is-flash" : ""}"
       data-id="${id}"
       data-zone="${emp.zone}"
       tabindex="0"
@@ -97,22 +128,34 @@ function objectGroup(id: EmployeeId, state: CompanyState, selectedId: EmployeeId
     >
       ${renderObjectSvg(id, selected)}
       ${pip}
+      <text class="emp-tag" x="32" y="72" text-anchor="middle">${escapeHtml(record.name)}</text>
     </g>
   `;
 }
 
-export function renderDeskSvg(state: CompanyState, selectedId: EmployeeId | null): string {
+export function renderDeskSvg(
+  state: CompanyState,
+  selectedId: EmployeeId | null,
+  flash: DeskFlash = { id: null, zone: null },
+): string {
   const objects = RENDER_ORDER.filter((id) => state.employees[id])
-    .map((id) => objectGroup(id, state, selectedId))
+    .map((id) => objectGroup(id, state, selectedId, flash.id))
     .join("");
   const lead = STAFF_BY_ID[state.deskLeadId] ?? STAFF_BY_ID.monitor;
   const count = Object.values(state.employees).filter((emp) => emp && emp.standing !== "terminated").length;
+  const zoneFlash = flash.zone
+    ? (() => {
+        const box = ZONE_BOX[flash.zone!];
+        return `<rect class="zone-flash" x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" rx="8"/>`;
+      })()
+    : "";
 
   return `
     <svg
       class="desk-svg"
       data-seed="${state.seed}"
       viewBox="0 0 1200 760"
+      preserveAspectRatio="xMidYMid meet"
       role="img"
       aria-label="Top-down view of Desk 4B. ${count} employees sit on the desk. Click an object to open its personnel file. Drag to relocate."
     >
@@ -184,7 +227,8 @@ export function renderDeskSvg(state: CompanyState, selectedId: EmployeeId | null
         <text x="272" y="170" text-anchor="middle" class="nameplate-sub">INTERIM LEAD: ${escapeHtml(lead.name).toUpperCase()}</text>
       </g>
 
-      ${paperStack(state)}
+      ${zoneFlash}
+      ${paperStack(state, selectedId)}
       ${objects}
     </svg>
   `;

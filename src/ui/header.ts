@@ -25,7 +25,7 @@ export function renderHeader(state: CompanyState): string {
   return `
     <header class="topbar">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true"></span>
+        <img class="brand-mark" src="/favicon.svg" width="32" height="32" alt="" />
         <div>
           <p class="company">${COMPANY.legalName}</p>
           <h1>PIP the Mug</h1>

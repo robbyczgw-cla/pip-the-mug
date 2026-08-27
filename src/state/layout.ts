@@ -10,9 +10,9 @@ export const ZONE_BOX: Record<Zone, { x: number; y: number; w: number; h: number
 
 const ZONE_SLOTS: Record<Zone, LayoutPose[]> = {
   prime: [
-    { x: 400, y: 228, rotate: -3 },
-    { x: 500, y: 232, rotate: 4 },
-    { x: 600, y: 226, rotate: -2 },
+    { x: 392, y: 226, rotate: -3 },
+    { x: 498, y: 230, rotate: 4 },
+    { x: 604, y: 224, rotate: -2 },
   ],
   shelf: [
     { x: 210, y: 88, rotate: -4 },
@@ -21,9 +21,9 @@ const ZONE_SLOTS: Record<Zone, LayoutPose[]> = {
     { x: 868, y: 86, rotate: -6 },
   ],
   drawer: [
-    { x: 198, y: 568, rotate: -12 },
-    { x: 268, y: 574, rotate: 22 },
-    { x: 330, y: 566, rotate: 8 },
+    { x: 198, y: 568, rotate: -8 },
+    { x: 278, y: 572, rotate: 12 },
+    { x: 248, y: 590, rotate: 4 },
   ],
   sink: [
     { x: 924, y: 538, rotate: 10 },

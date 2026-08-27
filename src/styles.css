@@ -29,7 +29,7 @@
 html,
 body {
   margin: 0;
-  min-height: 100%;
+  height: 100%;
 }
 
 body {
@@ -39,12 +39,14 @@ body {
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow: hidden;
 }
 
 #app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
 }
 
 /* ---------- Topbar ---------- */
@@ -56,11 +58,11 @@ body {
     "brand tag actions"
     "ticker ticker ticker";
   align-items: center;
-  gap: 8px 20px;
-  padding: 14px 22px 0;
+  gap: 4px 16px;
+  padding: 8px 16px 0;
   background: var(--navy);
   color: var(--paper);
-  border-bottom: 3px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
 }
 
 .brand {
@@ -71,12 +73,12 @@ body {
 }
 
 .brand-mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--pip);
-  border: 2px solid var(--ink);
-  box-shadow: inset 0 0 0 4px var(--navy), inset 0 0 0 6px var(--pip);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1.5px solid var(--ink);
+  background: var(--navy);
+  display: block;
 }
 
 .company {
@@ -89,7 +91,7 @@ body {
 
 .topbar h1 {
   margin: 0;
-  font-size: 21px;
+  font-size: 18px;
   letter-spacing: 0.02em;
   font-weight: 700;
 }
@@ -118,12 +120,12 @@ body {
 
 .ticker {
   grid-area: ticker;
-  margin: 12px -22px 0;
+  margin: 6px -16px 0;
   overflow: hidden;
   background: var(--navy-deep);
   border-top: 1px solid rgba(246, 240, 228, 0.18);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.06em;
   color: #cfe0e8;
 }
@@ -148,26 +150,25 @@ body {
 /* ---------- Workspace ---------- */
 
 .workspace {
-  flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
-  gap: 22px;
-  padding: 22px;
-  align-items: start;
+  min-height: 0;
+  padding: 8px 12px 4px;
+  display: flex;
 }
 
 .scene {
+  flex: 1;
+  min-height: 0;
   background: var(--paper);
   border: 2px solid var(--ink);
   border-radius: 6px;
-  box-shadow: 6px 6px 0 rgba(36, 28, 20, 0.14);
+  box-shadow: 4px 4px 0 rgba(36, 28, 20, 0.14);
   overflow: hidden;
 }
 
 .desk-svg {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
 }
 
 /* Zone typography inside the desk SVG */
@@ -212,7 +213,7 @@ body {
 .emp {
   cursor: pointer;
   outline: none;
-  transition: transform 0.55s ease, filter 140ms ease;
+  transition: transform 0.42s ease-out, filter 160ms ease;
   transform-box: fill-box;
   transform-origin: 32px 32px;
 }
@@ -259,20 +260,27 @@ body {
 }
 
 .emp-caption {
+  display: none;
+}
+
+.emp-tag {
   font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-anchor: middle;
+  font-size: 8px;
+  letter-spacing: 0.08em;
   fill: var(--ink);
-  opacity: 0.55;
-  transition: opacity 120ms ease;
+  opacity: 0.78;
   pointer-events: none;
 }
 
-.emp:hover .emp-caption,
-.emp:focus-visible .emp-caption,
-.emp.is-selected .emp-caption {
-  opacity: 0.85;
+.emp.is-flash {
+  filter: drop-shadow(0 0 6px rgba(232, 197, 71, 0.9));
+}
+
+.zone-flash {
+  fill: rgba(232, 197, 71, 0.16);
+  stroke: #e8c547;
+  stroke-width: 2;
+  pointer-events: none;
 }
 
 /* Pixel sprites: crisp upscaling, SVG art underneath as fallback. */
@@ -294,32 +302,47 @@ body {
   display: block;
 }
 
-/* ---------- Personnel panel (manila HR folder) ---------- */
+/* ---------- Personnel drawer ---------- */
 
-.panel {
-  position: sticky;
-  top: 22px;
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 12;
+  width: min(400px, 100%);
+  height: 100dvh;
   background: var(--manila);
-  border: 2px solid var(--ink);
-  border-radius: 3px 3px var(--radius) var(--radius);
-  box-shadow: 6px 6px 0 rgba(36, 28, 20, 0.16);
-  padding: 18px;
-  max-height: calc(100vh - 44px);
-  overflow-y: auto;
-  outline: none;
+  border-left: 2px solid var(--ink);
+  box-shadow: -6px 0 0 rgba(36, 28, 20, 0.16);
+  transform: translateX(100%);
+  transition: transform 0.35s ease-out;
+  overflow: hidden;
 }
 
-/* Folder tab */
-.panel::before {
-  content: "";
-  display: block;
-  width: 118px;
-  height: 12px;
-  margin: -26px 0 12px auto;
+.drawer.is-open {
+  transform: translateX(0);
+}
+
+.drawer .panel,
+.drawer:has(.panel) {
+  height: 100%;
+}
+
+.panel {
+  height: 100%;
   background: var(--manila);
-  border: 2px solid var(--ink);
-  border-bottom: none;
-  border-radius: 4px 4px 0 0;
+  padding: 18px 16px 24px;
+  overflow-y: auto;
+  outline: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  max-height: none;
+  position: static;
+}
+
+.panel::before {
+  display: none;
 }
 
 .panel:focus-visible {
@@ -537,27 +560,71 @@ body {
 
 .banner {
   margin: 0;
-  padding: 10px 22px;
-  background: #f3e2b0;
+  padding: 6px 16px;
+  background: var(--pip);
   color: var(--ink);
-  font-size: 13px;
+  font-size: 12px;
   border-bottom: 1px solid var(--ink);
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.banner-ask {
+  margin: 0;
+  font-weight: 600;
+}
+
+.banner-status {
+  margin: 0;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .banner a { color: var(--navy); }
 
 .access-strip {
   margin: 0;
-  padding: 6px 22px;
+  padding: 4px 16px;
   background: var(--navy-deep, #162c3a);
   color: #cfe0e8;
   font-family: var(--mono, ui-monospace, monospace);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.04em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tool-count,
+.tool-source {
+  opacity: 0.7;
+}
+
+.tool-chip {
+  display: inline-block;
+  border: 1px solid rgba(246, 240, 228, 0.28);
+  border-radius: 2px;
+  padding: 1px 6px;
+}
+
+.tool-chip.is-off {
+  opacity: 0.45;
 }
 
 .desk-paper {
   cursor: pointer;
+}
+
+.desk-paper.is-newest {
+  animation: paper-settle 420ms ease-out;
+}
+
+@keyframes paper-settle {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .banner code { font-size: 12px; }
 
@@ -785,18 +852,6 @@ body {
   margin-bottom: 16px;
 }
 
-/* ---------- WebMCP banner ---------- */
-
-.banner {
-  margin: 0;
-  padding: 9px 22px;
-  background: var(--pip);
-  border-bottom: 2px solid var(--ink);
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: var(--ink);
-}
-
 .banner code {
   font-family: var(--mono);
   font-size: 11.5px;
@@ -917,7 +972,7 @@ body {
 /* ---------- Activity log ---------- */
 
 .log-wrap {
-  margin: 0 22px 22px;
+  margin: 0 12px 8px;
 }
 
 .log-toggle {
@@ -942,15 +997,31 @@ body {
 
 .log-list {
   margin: 0;
-  padding: 10px 12px;
+  padding: 4px 12px 6px;
   list-style: none;
-  max-height: 190px;
+  max-height: 78px;
   overflow-y: auto;
   background: var(--paper);
   border: 2px solid var(--ink);
   border-top: none;
   border-radius: 0 0 3px 3px;
-  font-size: 12.5px;
+  font-size: 12px;
+}
+
+.log-more {
+  margin: 0;
+  padding: 2px 12px 4px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-top: 0;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  display: block;
 }
 
 .log-list li {
@@ -996,7 +1067,7 @@ body {
   display: grid;
   place-items: center;
   padding: 22px;
-  background: rgba(36, 28, 20, 0.55);
+  background: rgba(36, 28, 20, 0.28);
 }
 
 .modal {
@@ -1020,6 +1091,16 @@ body {
 
 .modal .actions {
   margin: 16px 0 0;
+}
+
+.sep-form {
+  border: 3px solid var(--rust);
+  box-shadow: 8px 8px 0 rgba(196, 92, 38, 0.35);
+}
+
+.sep-form .solid-btn.danger {
+  font-size: 14px;
+  padding: 10px 16px;
 }
 
 /* ---------- Desk chrome ---------- */
@@ -1055,17 +1136,23 @@ body {
 /* ---------- Responsive ---------- */
 
 @media (max-width: 1040px) {
-  .workspace {
-    grid-template-columns: minmax(0, 1fr);
+  .drawer {
+    width: min(380px, 100%);
   }
 
-  .panel {
-    position: static;
-    max-height: none;
+  .banner {
+    flex-direction: column;
+    gap: 2px;
   }
 
-  .panel::before {
-    margin-top: -8px;
+  .banner-status {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 768px) {
+  .drawer {
+    width: 100%;
   }
 }
 
@@ -1102,5 +1189,13 @@ body {
 
   .emp {
     transition: none;
+  }
+
+  .drawer {
+    transition: none;
+  }
+
+  .desk-paper.is-newest {
+    animation: none;
   }
 }

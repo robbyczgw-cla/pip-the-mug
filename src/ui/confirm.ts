@@ -6,10 +6,10 @@ export function renderConfirm(id: EmployeeId, reason: string): string {
   const record = STAFF_BY_ID[id];
   return `
     <div class="modal-back" role="dialog" aria-modal="true" aria-labelledby="term-title">
-      <div class="modal">
-        <p class="panel-kicker">Sensitive action · Form SEP-1</p>
+      <div class="modal sep-form">
+        <p class="panel-kicker">Human confirmation required · Form SEP-1</p>
         <h2 id="term-title">Terminate ${escapeHtml(record.name)}?</h2>
-        <p>This moves ${escapeHtml(record.name)} into the Donated / Sink box and onto the alumni wall. An agent cannot click this control. Upper management has to confirm it here.</p>
+        <p>The agent cannot click this control. Upper management has to confirm it here. ${escapeHtml(record.name)} stays employed until you do.</p>
         <p><strong>Reason on file:</strong> ${escapeHtml(reason)}</p>
         <div class="actions">
           <button type="button" class="solid-btn danger" data-action="confirm-terminate">Confirm termination</button>

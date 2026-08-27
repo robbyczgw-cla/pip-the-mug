@@ -29,25 +29,25 @@ export const DEMO_REPORTS: Record<DemoEmployeeId, EmployeeId | null> = {
 
 export const DEMO_ZONES: Record<DemoEmployeeId, Zone> = {
   monitor: "prime",
-  "webcam-cover": "prime",
+  "webcam-cover": "standard",
   mug: "standard",
   pen: "standard",
   "usb-hub": "standard",
   charger: "standard",
-  plant: "shelf",
+  plant: "standard",
   "stress-ball": "standard",
 };
 
-/** Contemporary eight-person desk. Mug sits on the blotter as the focal hire. */
+/** Slightly untidy start. Blotter stays open; Mug is the focal hire. */
 export const DEMO_LAYOUT: Record<DemoEmployeeId, LayoutPose> = {
-  monitor: { x: 488, y: 96, rotate: 0 },
-  "webcam-cover": { x: 590, y: 88, rotate: 2 },
-  plant: { x: 900, y: 140, rotate: -8 },
-  "usb-hub": { x: 250, y: 220, rotate: 6 },
-  charger: { x: 190, y: 280, rotate: -16 },
-  mug: { x: 520, y: 350, rotate: 2 },
-  pen: { x: 368, y: 418, rotate: 28 },
-  "stress-ball": { x: 792, y: 318, rotate: 10 },
+  monitor: { x: 508, y: 92, rotate: 0 },
+  "usb-hub": { x: 198, y: 176, rotate: 4 },
+  "webcam-cover": { x: 348, y: 168, rotate: 10 },
+  charger: { x: 248, y: 302, rotate: -20 },
+  plant: { x: 858, y: 218, rotate: -8 },
+  mug: { x: 528, y: 352, rotate: 3 },
+  pen: { x: 196, y: 430, rotate: 28 },
+  "stress-ball": { x: 848, y: 338, rotate: 8 },
 };
 
 export function isDemoId(id: EmployeeId): id is DemoEmployeeId {

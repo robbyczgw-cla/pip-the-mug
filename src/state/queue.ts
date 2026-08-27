@@ -1,6 +1,6 @@
 import { prefersReducedMotion } from "../lib/dom.ts";
 
-const PACE_MS = 600;
+const PACE_MS = 420;
 const waiters: Array<() => void> = [];
 let running = false;
 

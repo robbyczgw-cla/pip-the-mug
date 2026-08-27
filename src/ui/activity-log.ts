@@ -2,11 +2,12 @@ import { clockLabel } from "../lib/id";
 import { escapeHtml } from "../lib/dom";
 import type { ActivityEntry } from "../types";
 
-export function renderActivityLog(entries: ActivityEntry[], open: boolean): string {
+export function renderActivityLog(entries: ActivityEntry[], expanded: boolean): string {
+  const visible = expanded ? entries : entries.slice(0, 3);
   const rows =
-    entries.length === 0
+    visible.length === 0
       ? `<li class="muted">No HR actions yet this quarter.</li>`
-      : entries
+      : visible
           .map(
             (entry) => `
               <li>
@@ -17,13 +18,18 @@ export function renderActivityLog(entries: ActivityEntry[], open: boolean): stri
             `,
           )
           .join("");
+  const canExpand = entries.length > 3;
+  const label = expanded
+    ? `HR log ▾ · ${entries.length} · show 3`
+    : `HR log · ${Math.min(3, entries.length)} of ${entries.length}`;
 
   return `
     <section class="log-wrap">
-      <button type="button" class="log-toggle" data-action="toggle-log" aria-expanded="${open ? "true" : "false"}">
-        HR Activity Log ${open ? "▾" : "▸"} · ${entries.length} entries
+      <button type="button" class="log-toggle" data-action="toggle-log" aria-expanded="${expanded ? "true" : "false"}">
+        ${label}
       </button>
-      ${open ? `<ol class="log-list" aria-label="HR activity log">${rows}</ol>` : ""}
+      <ol class="log-list" aria-label="HR activity log">${rows}</ol>
+      ${canExpand && !expanded ? `<button type="button" class="log-more" data-action="toggle-log">${entries.length - 3} older · expand</button>` : ""}
     </section>
   `;
 }
