@@ -100,20 +100,26 @@ function followAgent(state: ReturnType<typeof getState>): void {
   if (latest.actor === "agent" && latest.employeeId) {
     ui.selectedId = latest.employeeId;
     ui.form = null;
-    window.clearTimeout(flashTimer);
+  }
+  const emp = latest.employeeId ? state.employees[latest.employeeId] : undefined;
+  const drawerMove = latest.tool === "relocate" && emp?.zone === "drawer";
+  const sinkLand = latest.tool === "terminate" && emp?.zone === "sink";
+  const agentFlash = latest.actor === "agent" && Boolean(latest.employeeId);
+  window.clearTimeout(flashTimer);
+  if (prefersReducedMotion() || (!drawerMove && !sinkLand && !agentFlash)) {
     if (prefersReducedMotion()) {
       ui.flashId = null;
       ui.flashZone = null;
-      return;
     }
-    ui.flashId = latest.employeeId;
-    ui.flashZone = state.employees[latest.employeeId]?.zone ?? null;
-    flashTimer = window.setTimeout(() => {
-      ui.flashId = null;
-      ui.flashZone = null;
-      render();
-    }, 480);
+    return;
   }
+  ui.flashId = latest.employeeId ?? null;
+  ui.flashZone = sinkLand ? "sink" : (emp?.zone ?? null);
+  flashTimer = window.setTimeout(() => {
+    ui.flashId = null;
+    ui.flashZone = null;
+    render();
+  }, drawerMove || sinkLand ? 620 : 480);
 }
 
 function render(): void {

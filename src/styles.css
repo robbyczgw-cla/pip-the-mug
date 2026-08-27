@@ -182,6 +182,18 @@ body {
   opacity: 0.6;
 }
 
+.zone-chip.is-on-tag {
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  opacity: 0.95;
+}
+
+.zone-prop {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}
+
 .zone-label {
   font-size: 9px;
   opacity: 0.85;
@@ -274,6 +286,79 @@ body {
 
 .emp.is-flash {
   filter: drop-shadow(0 0 6px rgba(232, 197, 71, 0.9));
+}
+
+.emp-art {
+  transform-box: fill-box;
+  transform-origin: 32px 32px;
+}
+
+.emp.is-drawer-in .emp-art {
+  animation: drawer-slide-in 0.38s ease-out;
+}
+
+.emp.is-sink-land .emp-art {
+  animation: sink-land 0.5s cubic-bezier(0.22, 1.35, 0.36, 1);
+}
+
+.sink-zone.is-klonk {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: sink-clonk 0.42s ease-out;
+}
+
+.sink-ripple {
+  transform-box: fill-box;
+  transform-origin: 1010px 575px;
+  animation: sink-ripple 0.55s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes drawer-slide-in {
+  from {
+    transform: translateY(-14px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sink-land {
+  0% {
+    transform: translateY(-20px) rotate(-8deg);
+  }
+  58% {
+    transform: translateY(3px) rotate(2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+}
+
+@keyframes sink-clonk {
+  0% {
+    transform: translateY(0);
+  }
+  32% {
+    transform: translateY(4px);
+  }
+  64% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sink-ripple {
+  0% {
+    transform: scale(0.35);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
 }
 
 .zone-flash {
@@ -1140,9 +1225,12 @@ body {
 }
 
 .emp.is-terminated {
-  opacity: 0.45;
+  opacity: 0.82;
   cursor: default;
-  filter: grayscale(0.7);
+}
+
+.emp.is-terminated[data-zone="sink"] {
+  opacity: 1;
 }
 
 .emp.is-dragging {

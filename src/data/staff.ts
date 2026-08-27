@@ -393,7 +393,7 @@ export const STAFF_BY_ID: Record<EmployeeId, StaffRecord> = Object.fromEntries(
 export const DEFAULT_LAYOUT: Record<EmployeeId, LayoutPose> = {
   monitor: { x: 430, y: 92, rotate: 0 },
   "webcam-cover": { x: 618, y: 100, rotate: 0 },
-  plant: { x: 868, y: 150, rotate: -6 },
+  plant: { x: 848, y: 72, rotate: -6 },
   "usb-hub": { x: 292, y: 198, rotate: 8 },
   charger: { x: 188, y: 250, rotate: -18 },
   mug: { x: 248, y: 318, rotate: 4 },

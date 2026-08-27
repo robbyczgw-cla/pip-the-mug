@@ -1,6 +1,16 @@
 import { EMPLOYEE_IDS, type EmployeeId } from "../types.ts";
 
-export const PROP_SPRITES = ["sink-box", "pip-sticker"] as const;
+export const PROP_SPRITES = [
+  "sink-box",
+  "pip-sticker",
+  "shelf-board",
+  "shelf-archive",
+  "shelf-label",
+  "drawer-open",
+  "drawer-handle",
+  "sink-basin",
+  "sink-tag",
+] as const;
 
 const ready = new Map<string, boolean>();
 

@@ -1,12 +1,25 @@
 import type { EmployeeId, LayoutPose, Zone } from "../types.ts";
 
-export const ZONE_BOX: Record<Zone, { x: number; y: number; w: number; h: number }> = {
-  shelf: { x: 188, y: 80, w: 944, h: 72 },
+export interface ZoneBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export const ZONE_BOX: Record<Zone, ZoneBox> = {
+  shelf: { x: 170, y: 72, w: 910, h: 80 },
   prime: { x: 360, y: 210, w: 380, h: 110 },
-  drawer: { x: 188, y: 548, w: 220, h: 108 },
-  sink: { x: 900, y: 512, w: 228, h: 140 },
+  drawer: { x: 170, y: 516, w: 304, h: 140 },
+  sink: { x: 888, y: 492, w: 244, h: 176 },
   standard: { x: 168, y: 160, w: 920, h: 380 },
 };
+
+/** Two short boards. Hits must not form a second alumni column. */
+export const SHELF_BOXES: ZoneBox[] = [
+  { x: 170, y: 72, w: 260, h: 80 },
+  { x: 820, y: 72, w: 260, h: 80 },
+];
 
 const ZONE_SLOTS: Record<Zone, LayoutPose[]> = {
   prime: [
@@ -15,20 +28,20 @@ const ZONE_SLOTS: Record<Zone, LayoutPose[]> = {
     { x: 604, y: 224, rotate: -2 },
   ],
   shelf: [
-    { x: 210, y: 88, rotate: -4 },
-    { x: 310, y: 90, rotate: 5 },
-    { x: 760, y: 88, rotate: 2 },
-    { x: 868, y: 86, rotate: -6 },
+    { x: 848, y: 72, rotate: -6 },
+    { x: 940, y: 74, rotate: 2 },
+    { x: 198, y: 74, rotate: -4 },
+    { x: 292, y: 76, rotate: 5 },
   ],
   drawer: [
-    { x: 198, y: 568, rotate: -8 },
-    { x: 278, y: 572, rotate: 12 },
-    { x: 248, y: 590, rotate: 4 },
+    { x: 186, y: 540, rotate: -8 },
+    { x: 322, y: 556, rotate: 10 },
+    { x: 250, y: 568, rotate: 4 },
   ],
   sink: [
-    { x: 924, y: 538, rotate: 10 },
-    { x: 1000, y: 540, rotate: -8 },
-    { x: 962, y: 572, rotate: 6 },
+    { x: 958, y: 532, rotate: 16 },
+    { x: 1018, y: 548, rotate: -8 },
+    { x: 978, y: 568, rotate: 6 },
   ],
   standard: [
     { x: 248, y: 318, rotate: 4 },
@@ -44,13 +57,18 @@ const ZONE_SLOTS: Record<Zone, LayoutPose[]> = {
   ],
 };
 
+function inBox(box: ZoneBox, x: number, y: number): boolean {
+  return x >= box.x && x <= box.x + box.w && y >= box.y && y <= box.y + box.h;
+}
+
 export function zoneAt(x: number, y: number): Zone {
   const order: Zone[] = ["sink", "drawer", "shelf", "prime", "standard"];
   for (const zone of order) {
-    const box = ZONE_BOX[zone];
-    if (x >= box.x && x <= box.x + box.w && y >= box.y && y <= box.y + box.h) {
-      return zone;
+    if (zone === "shelf") {
+      if (SHELF_BOXES.some((box) => inBox(box, x, y))) return "shelf";
+      continue;
     }
+    if (inBox(ZONE_BOX[zone], x, y)) return zone;
   }
   return "standard";
 }
