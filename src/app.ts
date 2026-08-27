@@ -27,6 +27,7 @@ import { renderActivityLog } from "./ui/activity-log";
 import { renderConfirm } from "./ui/confirm";
 import { renderBanner } from "./ui/banner";
 import { renderAccess } from "./ui/access";
+import { copyDemoPrompt, renderTryIt } from "./ui/try-it";
 import { startWebMcp } from "./webmcp/register";
 import { detectSeed } from "./data/seeds";
 import { setPersonnelFileOpener } from "./ui/file";
@@ -35,6 +36,7 @@ interface UiState {
   selectedId: EmployeeId | null;
   form: FormMode;
   logOpen: boolean;
+  guideOpen: boolean;
   flashId: EmployeeId | null;
   flashZone: Zone | null;
 }
@@ -43,6 +45,7 @@ const ui: UiState = {
   selectedId: null,
   form: null,
   logOpen: false,
+  guideOpen: false,
   flashId: null,
   flashZone: null,
 };
@@ -127,6 +130,7 @@ function render(): void {
   followAgent(state);
   const header = document.querySelector<HTMLElement>("[data-header]");
   const banner = document.querySelector<HTMLElement>("[data-banner]");
+  const tryIt = document.querySelector<HTMLElement>("[data-try-it]");
   const access = document.querySelector<HTMLElement>("[data-access]");
   const scene = document.querySelector<HTMLElement>("[data-scene]");
   const panel = document.querySelector<HTMLElement>("[data-panel]");
@@ -139,6 +143,7 @@ function render(): void {
   }
   header.innerHTML = renderHeader(state);
   banner.innerHTML = renderBanner();
+  if (tryIt) tryIt.innerHTML = renderTryIt(ui.guideOpen);
   if (access) access.innerHTML = renderAccess();
   const prior = new Map<string, string>();
   scene.querySelectorAll<SVGGElement>(".emp").forEach((el) => {
@@ -324,6 +329,7 @@ export function mount(root: HTMLElement): void {
   root.innerHTML = `
     <div data-header></div>
     <div data-banner></div>
+    <div data-try-it></div>
     <div data-access></div>
     <main class="workspace">
       <section class="scene" data-scene></section>
@@ -352,6 +358,22 @@ export function mount(root: HTMLElement): void {
     if (target.closest("[data-action=toggle-log]")) {
       ui.logOpen = !ui.logOpen;
       render();
+      return;
+    }
+    if (target.closest("[data-action=toggle-try-it]")) {
+      ui.guideOpen = !ui.guideOpen;
+      render();
+      return;
+    }
+    if (target.closest("[data-action=copy-demo-prompt]")) {
+      const btn = target.closest<HTMLButtonElement>("[data-action=copy-demo-prompt]");
+      void copyDemoPrompt().then((ok) => {
+        if (!btn) return;
+        btn.textContent = ok ? "Copied" : "Copy failed";
+        window.setTimeout(() => {
+          if (btn.isConnected) btn.textContent = "Copy prompt";
+        }, 1400);
+      });
       return;
     }
     if (target.closest("[data-action=toggle-sound]")) {
