@@ -97,6 +97,7 @@ export interface ActivityEntry {
   tool: string;
   actor: Actor;
   summary: string;
+  employeeId?: EmployeeId;
 }
 
 export type PaperKind = "review" | "pip" | "termination";

@@ -1,4 +1,5 @@
 import {
+  STORAGE_KEY,
   createDefaultState,
   getState,
   putOnPip,
@@ -7,6 +8,9 @@ import {
 } from "../state/store";
 import type { CompanyState } from "../types";
 
+const BACKUP_KEY = "pip-the-mug:v1:backup";
+const DEMO_SESSION = "pip-demo-seeded";
+
 export function isDemoRequest(): boolean {
   const params = new URLSearchParams(window.location.search);
   if (params.get("demo") === "1") return true;
@@ -14,7 +18,37 @@ export function isDemoRequest(): boolean {
   return path === "/demo";
 }
 
+export function canRestoreDesk(): boolean {
+  try {
+    return Boolean(localStorage.getItem(BACKUP_KEY));
+  } catch {
+    return false;
+  }
+}
+
+export function restoreDesk(): boolean {
+  try {
+    const raw = localStorage.getItem(BACKUP_KEY);
+    if (!raw) return false;
+    replaceState(JSON.parse(raw) as CompanyState);
+    sessionStorage.removeItem(DEMO_SESSION);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function applyDemoSeed(): CompanyState {
+  if (sessionStorage.getItem(DEMO_SESSION) === "1") {
+    return getState();
+  }
+  try {
+    const current = localStorage.getItem(STORAGE_KEY);
+    if (current) localStorage.setItem(BACKUP_KEY, current);
+    sessionStorage.setItem(DEMO_SESSION, "1");
+  } catch {
+    /* private mode */
+  }
   replaceState(createDefaultState(), true);
   writeReview(
     "pen",

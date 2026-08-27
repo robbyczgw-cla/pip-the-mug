@@ -28,6 +28,7 @@ export function renderHeader(state: CompanyState): string {
         <button type="button" class="ghost-btn" data-action="toggle-sound" aria-pressed="${state.soundEnabled}">
           Sound ${state.soundEnabled ? "on" : "off"}
         </button>
+        <button type="button" class="ghost-btn" data-action="close-quarter">Close quarter</button>
         <button type="button" class="ghost-btn" data-action="reset-company">Reset company</button>
       </div>
     </header>

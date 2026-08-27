@@ -10,11 +10,10 @@ import type {
   PaperKind,
   PipDays,
   PipOutcome,
-  Standing,
   Zone,
 } from "../types";
 import { EMPLOYEE_IDS } from "../types";
-import { occupiedExcept, slotInZone } from "./layout";
+import { occupiedInZone, slotInZone } from "./layout";
 
 export const STATE_VERSION = 1;
 export const STORAGE_KEY = "pip-the-mug:v1";
@@ -29,6 +28,7 @@ function log(
   tool: string,
   actor: Actor,
   summary: string,
+  employeeId?: EmployeeId,
 ): ActivityEntry[] {
   const entry: ActivityEntry = {
     id: uid("log"),
@@ -36,6 +36,7 @@ function log(
     tool,
     actor,
     summary,
+    employeeId,
   };
   return [entry, ...current.activity].slice(0, 80);
 }
@@ -56,10 +57,8 @@ function employeeList(current: CompanyState): EmployeeRuntime[] {
   return EMPLOYEE_IDS.map((id) => current.employees[id]);
 }
 
-function posesOf(current: CompanyState): Record<EmployeeId, LayoutPose> {
-  const poses = {} as Record<EmployeeId, LayoutPose>;
-  for (const id of EMPLOYEE_IDS) poses[id] = current.employees[id].pose;
-  return poses;
+function zoneSlots(current: CompanyState, zone: Zone, except: EmployeeId): LayoutPose[] {
+  return occupiedInZone(current.employees, zone, except);
 }
 
 export function createDefaultState(): CompanyState {
@@ -189,7 +188,7 @@ export function writeReview(
     ...state,
     employees: { ...state.employees, [id]: nextEmp },
     papers: paper(state, "review", id),
-    activity: log(state, "write_review", actor, summary),
+    activity: log(state, "write_review", actor, summary, id),
   };
   emit();
   return { ok: true, summary };
@@ -204,8 +203,8 @@ export function putOnPip(
   if (!emp || emp.standing === "terminated") {
     return { ok: false, summary: `Cannot place ${id} on a PIP.` };
   }
-  if (activePip(emp)) {
-    return { ok: false, summary: `${id} already has an open PIP.` };
+  if (emp.standing === "on_pip" || activePip(emp)) {
+    return { ok: false, summary: `${id} already has a PIP on file.` };
   }
   const pip = {
     id: uid("pip"),
@@ -225,7 +224,7 @@ export function putOnPip(
     ...state,
     employees: { ...state.employees, [id]: nextEmp },
     papers: paper(state, "pip", id),
-    activity: log(state, "put_on_pip", actor, summary),
+    activity: log(state, "put_on_pip", actor, summary, id),
   };
   emit();
   return { ok: true, summary };
@@ -242,20 +241,19 @@ export function resolvePip(
     return { ok: false, summary: `No open PIP for ${id}.` };
   }
   const pip = { ...open, outcome, resolvedAt: new Date().toISOString() };
-  const standing: Standing = outcome === "failed" ? emp.standing : "active";
   const nextEmp: EmployeeRuntime = {
     ...emp,
-    standing: outcome === "passed" ? "active" : emp.standing,
+    standing: outcome === "passed" ? "active" : "on_pip",
     pips: emp.pips.map((item) => (item.id === pip.id ? pip : item)),
   };
   const summary =
     outcome === "passed"
       ? `PIP closed for ${id}: passed. Returned to active standing.`
-      : `PIP closed for ${id}: failed. Standing remains ${standing}. Prepare a termination packet if needed.`;
+      : `PIP closed for ${id}: failed. Sticker stays. File a termination packet.`;
   state = {
     ...state,
     employees: { ...state.employees, [id]: nextEmp },
-    activity: log(state, "resolve_pip", actor, summary),
+    activity: log(state, "resolve_pip", actor, summary, id),
   };
   emit();
   return { ok: true, summary };
@@ -266,7 +264,7 @@ export function promote(id: EmployeeId, newTitle: string, actor: Actor): { ok: b
   if (!emp || emp.standing === "terminated") {
     return { ok: false, summary: `Cannot promote ${id}.` };
   }
-  const pose = slotInZone("prime", occupiedExcept(posesOf(state), id));
+  const pose = slotInZone("prime", zoneSlots(state, "prime", id));
   const nextEmp: EmployeeRuntime = {
     ...emp,
     title: newTitle,
@@ -281,7 +279,7 @@ export function promote(id: EmployeeId, newTitle: string, actor: Actor): { ok: b
     ...state,
     deskLeadId,
     employees: { ...state.employees, [id]: nextEmp },
-    activity: log(state, "promote", actor, summary),
+    activity: log(state, "promote", actor, summary, id),
   };
   emit();
   return { ok: true, summary };
@@ -300,13 +298,13 @@ export function relocate(
   if (zone === "sink") {
     return { ok: false, summary: "The sink is for donated alumni. Use terminate." };
   }
-  const pose = slotInZone(zone, occupiedExcept(posesOf(state), id), prefer);
+  const pose = slotInZone(zone, zoneSlots(state, zone, id), prefer);
   const nextEmp = { ...emp, zone, pose };
   const summary = `${id} relocated to the ${zone} zone.`;
   state = {
     ...state,
     employees: { ...state.employees, [id]: nextEmp },
-    activity: log(state, "relocate", actor, summary),
+    activity: log(state, "relocate", actor, summary, id),
   };
   emit();
   return { ok: true, summary };
@@ -328,7 +326,7 @@ export function terminate(
       summary: `${id} was promoted this quarter and is in a protected cooling-off period.`,
     };
   }
-  const pose = slotInZone("sink", occupiedExcept(posesOf(state), id));
+  const pose = slotInZone("sink", zoneSlots(state, "sink", id));
   const nextEmp: EmployeeRuntime = {
     ...emp,
     standing: "terminated",
@@ -347,7 +345,7 @@ export function terminate(
     employees: { ...state.employees, [id]: nextEmp },
     alumni: [{ employeeId: id, reason, at: new Date().toISOString() }, ...state.alumni],
     papers: paper(state, "termination", id),
-    activity: log(state, "terminate", actor, summary),
+    activity: log(state, "terminate", actor, summary, id),
   };
   emit();
   return { ok: true, summary };
@@ -359,7 +357,20 @@ export function setDeskLead(id: EmployeeId, actor: Actor): void {
   state = {
     ...state,
     deskLeadId: id,
-    activity: log(state, "set_desk_lead", actor, summary),
+    activity: log(state, "set_desk_lead", actor, summary, id),
   };
   emit();
+}
+
+export function closeQuarter(actor: Actor): { ok: boolean; summary: string } {
+  const previous = state.quarter;
+  const next = previous + 1;
+  const summary = `Closed Q${previous}. Desk is now in Q${next}. Promotion cooling-off from Q${previous} has expired.`;
+  state = {
+    ...state,
+    quarter: next,
+    activity: log(state, "close_quarter", actor, summary),
+  };
+  emit();
+  return { ok: true, summary };
 }

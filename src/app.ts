@@ -5,6 +5,7 @@ import { prefersReducedMotion } from "./lib/dom";
 import { enqueue } from "./state/queue";
 import { zoneAt } from "./state/layout";
 import {
+  closeQuarter,
   getState,
   loadState,
   promote,
@@ -23,8 +24,9 @@ import { renderPanel, type FormMode } from "./ui/panel";
 import { renderActivityLog } from "./ui/activity-log";
 import { renderConfirm } from "./ui/confirm";
 import { renderBanner } from "./ui/banner";
+import { renderAccess } from "./ui/access";
 import { startWebMcp } from "./webmcp/register";
-import { applyDemoSeed, isDemoRequest } from "./data/demo";
+import { applyDemoSeed, canRestoreDesk, isDemoRequest, restoreDesk } from "./data/demo";
 
 interface UiState {
   selectedId: EmployeeId | null;
@@ -40,6 +42,9 @@ const ui: UiState = {
   pendingTerminate: null,
 };
 
+let skipNextClick = false;
+let lastFollowedLog = "";
+
 function isEmployeeId(value: string): value is EmployeeId {
   return EMPLOYEE_IDS.includes(value as EmployeeId);
 }
@@ -52,17 +57,30 @@ function lines(value: FormDataEntryValue | null): string[] {
     .filter(Boolean);
 }
 
+function followAgent(state: ReturnType<typeof getState>): void {
+  const latest = state.activity[0];
+  if (!latest || latest.id === lastFollowedLog) return;
+  lastFollowedLog = latest.id;
+  if (latest.actor === "agent" && latest.employeeId) {
+    ui.selectedId = latest.employeeId;
+    ui.form = null;
+  }
+}
+
 function render(): void {
   const state = getState();
+  followAgent(state);
   const header = document.querySelector<HTMLElement>("[data-header]");
   const banner = document.querySelector<HTMLElement>("[data-banner]");
+  const access = document.querySelector<HTMLElement>("[data-access]");
   const scene = document.querySelector<HTMLElement>("[data-scene]");
   const panel = document.querySelector<HTMLElement>("[data-panel]");
   const log = document.querySelector<HTMLElement>("[data-log]");
   const modal = document.querySelector<HTMLElement>("[data-modal]");
   if (!header || !scene || !panel || !log || !modal || !banner) return;
   header.innerHTML = renderHeader(state);
-  banner.innerHTML = renderBanner();
+  banner.innerHTML = renderBanner(canRestoreDesk());
+  if (access) access.innerHTML = renderAccess();
   const prior = new Map<string, string>();
   scene.querySelectorAll<SVGGElement>(".emp").forEach((el) => {
     if (el.dataset.id && el.style.transform) prior.set(el.dataset.id, el.style.transform);
@@ -81,7 +99,10 @@ function render(): void {
       el.style.transform = next;
     });
   }
-  panel.innerHTML = renderPanel(ui.selectedId, state, ui.form);
+  const keepForm = Boolean(ui.form && ui.selectedId && state.activity[0]?.actor !== "agent");
+  if (!keepForm) {
+    panel.innerHTML = renderPanel(ui.selectedId, state, ui.form);
+  }
   log.innerHTML = renderActivityLog(state.activity, ui.logOpen);
   modal.innerHTML = ui.pendingTerminate
     ? renderConfirm(ui.pendingTerminate.id, ui.pendingTerminate.reason)
@@ -135,6 +156,7 @@ function bindDrag(svg: SVGSVGElement | null): void {
     current.el.classList.remove("is-dragging");
     if (!current.moved) return;
     event.preventDefault();
+    skipNextClick = true;
     const point = svgPoint(svg, event);
     const zone = zoneAt(point.x, point.y);
     void enqueue(() => {
@@ -155,6 +177,10 @@ function bindDrag(svg: SVGSVGElement | null): void {
 }
 
 function onActivate(target: EventTarget | null): void {
+  if (skipNextClick) {
+    skipNextClick = false;
+    return;
+  }
   const el = target instanceof Element ? target.closest("[data-id]") : null;
   const id = el?.getAttribute("data-id");
   if (typeof id === "string" && isEmployeeId(id)) {
@@ -211,6 +237,7 @@ export function mount(root: HTMLElement): void {
   root.innerHTML = `
     <div data-header></div>
     <div data-banner></div>
+    <div data-access></div>
     <main class="workspace">
       <section class="scene" data-scene></section>
       <div data-panel></div>
@@ -244,6 +271,16 @@ export function mount(root: HTMLElement): void {
     }
     if (target.closest("[data-action=toggle-sound]")) {
       toggleSound();
+      return;
+    }
+    if (target.closest("[data-action=close-quarter]")) {
+      closeQuarter("human");
+      return;
+    }
+    if (target.closest("[data-action=restore-desk]")) {
+      restoreDesk();
+      ui.selectedId = null;
+      ui.form = null;
       return;
     }
     if (target.closest("[data-action=reset-company]")) {

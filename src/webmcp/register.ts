@@ -5,14 +5,24 @@ import { buildTools } from "./tools";
 let abort: AbortController | null = null;
 let generation = 0;
 let started = false;
+let lastSignature = "";
 
-export async function syncWebMcpTools(): Promise<void> {
+function signature(): string {
+  return buildTools()
+    .map((tool) => tool.name)
+    .join("|");
+}
+
+export async function syncWebMcpTools(force = false): Promise<void> {
   const detected = detectWebMcp();
   if (!detected.context) return;
+  const sig = signature();
+  if (!force && sig === lastSignature && abort) return;
   const mine = ++generation;
   abort?.abort();
   const controller = new AbortController();
   abort = controller;
+  lastSignature = sig;
   await new Promise((resolve) => window.setTimeout(resolve, 0));
   if (mine !== generation) return;
   const tools = buildTools();

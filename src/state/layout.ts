@@ -5,7 +5,7 @@ export const ZONE_BOX: Record<Zone, { x: number; y: number; w: number; h: number
   prime: { x: 360, y: 210, w: 380, h: 110 },
   drawer: { x: 188, y: 548, w: 220, h: 108 },
   sink: { x: 900, y: 512, w: 228, h: 140 },
-  standard: { x: 168, y: 160, w: 720, h: 380 },
+  standard: { x: 168, y: 160, w: 920, h: 380 },
 };
 
 const ZONE_SLOTS: Record<Zone, LayoutPose[]> = {
@@ -68,15 +68,18 @@ export function slotInZone(
     const key = `${Math.round(slot.x / 24)}:${Math.round(slot.y / 24)}`;
     if (!taken.includes(key)) return { ...slot };
   }
-  const extra = ZONE_SLOTS[zone][occupied.length % ZONE_SLOTS[zone].length];
-  return { x: extra.x + 18, y: extra.y + 16, rotate: extra.rotate };
+  const slots = ZONE_SLOTS[zone];
+  const extra = slots[occupied.length % slots.length];
+  const wave = Math.floor(occupied.length / slots.length);
+  return { x: extra.x + 14 * wave, y: extra.y + 12 * wave, rotate: extra.rotate };
 }
 
-export function occupiedExcept(
-  poses: Record<EmployeeId, LayoutPose>,
+export function occupiedInZone(
+  employees: Record<EmployeeId, { id: EmployeeId; zone: Zone; pose: LayoutPose }>,
+  zone: Zone,
   except: EmployeeId,
 ): LayoutPose[] {
-  return Object.entries(poses)
-    .filter(([id]) => id !== except)
-    .map(([, pose]) => pose);
+  return Object.values(employees)
+    .filter((emp) => emp.id !== except && emp.zone === zone)
+    .map((emp) => emp.pose);
 }

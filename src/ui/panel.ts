@@ -50,7 +50,7 @@ export function renderPanel(
 
   const backstory = record.backstory.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("");
 
-  const liveReviews = emp.reviews.map(
+  const liveReviews = emp.reviews.slice(emp.reviews[0] ? 1 : 0).map(
     (review) => `
       <article class="file-card">
         <header>
@@ -91,12 +91,22 @@ export function renderPanel(
           )
           .join("");
 
+  const failedPip = !open && emp.pips[0]?.outcome === "failed";
   const standingLabel =
-    emp.standing === "on_pip"
-      ? `On PIP (${open?.days ?? "—"} days)`
-      : emp.standing === "terminated"
-        ? "Terminated · alumni"
-        : "Active";
+    emp.standing === "on_pip" && open
+      ? `On PIP (${open.days} days)`
+      : failedPip
+        ? "PIP failed · awaiting separation"
+        : emp.standing === "terminated"
+          ? "Terminated · alumni"
+          : "Active";
+
+  const pipActions = open
+    ? `<button type="button" class="ghost-btn" data-form="resolve-pass">PIP passed</button>
+                    <button type="button" class="ghost-btn" data-form="resolve-fail">PIP failed</button>`
+    : failedPip
+      ? ""
+      : `<button type="button" class="ghost-btn" data-form="pip">Put on PIP</button>`;
 
   const actions =
     emp.standing === "terminated"
@@ -104,8 +114,7 @@ export function renderPanel(
       : `
         <div class="actions">
           <button type="button" class="solid-btn" data-form="review">Write review</button>
-          ${open ? `<button type="button" class="ghost-btn" data-form="resolve-pass">PIP passed</button>
-                    <button type="button" class="ghost-btn" data-form="resolve-fail">PIP failed</button>` : `<button type="button" class="ghost-btn" data-form="pip">Put on PIP</button>`}
+          ${pipActions}
           <button type="button" class="ghost-btn" data-form="promote">Promote</button>
           <button type="button" class="ghost-btn" data-form="relocate">Relocate</button>
           ${
@@ -144,7 +153,7 @@ export function renderPanel(
       ${actions}
 
       ${emp.reviews[0] ? renderReviewPaper(emp, emp.reviews[0]) : ""}
-      ${open ? renderPipPaper(emp, open) : ""}
+      ${open ? renderPipPaper(emp, open) : emp.pips[0] ? renderPipPaper(emp, emp.pips[0]) : ""}
       ${term ? renderTerminationPaper(emp, term) : ""}
 
       <section>

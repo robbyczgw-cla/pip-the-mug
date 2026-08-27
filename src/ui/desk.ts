@@ -6,10 +6,11 @@ import { renderObjectSvg } from "./svg-objects";
 
 function alumniCards(state: CompanyState): string {
   if (state.alumni.length === 0) {
-    return `<text x="79" y="160" text-anchor="middle" class="zone-hint">No separations
-this quarter.</text>`;
+    return `<text x="79" y="148" text-anchor="middle" class="zone-hint">No separations</text>
+        <text x="79" y="164" text-anchor="middle" class="zone-hint">this quarter.</text>`;
   }
-  return state.alumni
+  const extra = state.alumni.length > 6 ? state.alumni.length - 6 : 0;
+  const cards = state.alumni
     .slice(0, 6)
     .map((row, index) => {
       const record = STAFF_BY_ID[row.employeeId];
@@ -19,6 +20,34 @@ this quarter.</text>`;
           <rect class="alumni-card" x="30" y="${y}" width="98" height="64" rx="2"/>
           <text x="79" y="${y + 22}" text-anchor="middle" class="zone-label">${escapeHtml(record.name)}</text>
           <text x="79" y="${y + 40}" text-anchor="middle" class="zone-hint">separated</text>
+        </g>
+      `;
+    })
+    .join("");
+  const more =
+    extra > 0
+      ? `<text x="79" y="${138 + 6 * 72}" text-anchor="middle" class="zone-hint">+${extra} more</text>`
+      : "";
+  return cards + more;
+}
+
+function paperStack(state: CompanyState): string {
+  const colors = { review: "#f6f0e4", pip: "#e8c547", termination: "#edc4b8" };
+  const labels = { review: "PR-12", pip: "PIP-90", termination: "SEP-1" };
+  return state.papers
+    .slice(0, 8)
+    .map((item, index) => {
+      const name = STAFF_BY_ID[item.employeeId].name;
+      const x = 640 + index * 8;
+      const y = 318 + index * 5;
+      const rotate = index % 2 === 0 ? -7 + index : 6 - index;
+      return `
+        <g class="desk-paper" data-id="${item.employeeId}" tabindex="0" role="button"
+           aria-label="${labels[item.kind]} for ${escapeHtml(name)}"
+           transform="translate(${x} ${y}) rotate(${rotate})">
+          <rect width="76" height="96" fill="${colors[item.kind]}" stroke="#241c14" stroke-width="1.3"/>
+          <text x="38" y="22" text-anchor="middle" class="zone-label">${labels[item.kind]}</text>
+          <text x="38" y="42" text-anchor="middle" class="zone-hint">${escapeHtml(name)}</text>
         </g>
       `;
     })
@@ -136,6 +165,7 @@ export function renderDeskSvg(state: CompanyState, selectedId: EmployeeId | null
         <text x="272" y="170" text-anchor="middle" class="nameplate-sub">INTERIM LEAD: ${escapeHtml(lead.name).toUpperCase()}</text>
       </g>
 
+      ${paperStack(state)}
       ${objects}
     </svg>
   `;
