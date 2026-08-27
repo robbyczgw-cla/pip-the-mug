@@ -1,8 +1,9 @@
-import { STAFF_BY_ID } from "../data/staff";
-import { playPaperShuffle } from "../lib/audio";
-import { enqueue } from "../state/queue";
-import { listStaffRows, orgChart } from "../state/org";
-import { requestTerminationConfirmation } from "./confirm";
+import { STAFF_BY_ID } from "../data/staff.ts";
+import { playPaperShuffle } from "../lib/audio.ts";
+import { enqueue } from "../state/queue.ts";
+import { listStaffRows, orgChart } from "../state/org.ts";
+import { requestTerminationConfirmation } from "./confirm.ts";
+import { openPersonnelFile } from "../ui/file.ts";
 import {
   activePip,
   beginPendingTermination,
@@ -16,8 +17,8 @@ import {
   staffOnPip,
   terminate,
   writeReview,
-} from "../state/store";
-import type { EmployeeId, PipDays, PipOutcome, Zone } from "../types";
+} from "../state/store.ts";
+import type { EmployeeId, PipDays, PipOutcome, Zone } from "../types.ts";
 
 export interface WebMcpTool {
   name: string;
@@ -118,6 +119,7 @@ export function buildTools(): WebMcpTool[] {
         if (!id) return { ok: false, summary: "Unknown employee id.", error: "unknown_id" };
         const file = filePayload(id);
         if ("error" in file) return { ok: false, summary: "Unknown employee id.", error: "unknown_id" };
+        openPersonnelFile(id);
         return {
           ok: true,
           summary: `Opened file for ${STAFF_BY_ID[id].name}: ${file.standing}, zone ${file.zone}.`,

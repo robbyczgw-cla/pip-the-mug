@@ -1,6 +1,6 @@
-import { STAFF_BY_ID } from "../data/staff";
-import { escapeHtml } from "../lib/dom";
-import type { EmployeeRuntime, PaperItem, PipRecord, ReviewRecord, TerminationRecord } from "../types";
+import { STAFF_BY_ID } from "../data/staff.ts";
+import { escapeHtml } from "../lib/dom.ts";
+import type { EmployeeRuntime, PaperItem, PipRecord, ReviewRecord, TerminationRecord } from "../types.ts";
 
 function checks(items: string[]): string {
   if (items.length === 0) return `<p class="muted">None listed.</p>`;

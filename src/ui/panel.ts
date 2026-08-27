@@ -1,14 +1,14 @@
-import { STAFF_BY_ID } from "../data/staff";
-import { escapeHtml } from "../lib/dom";
-import type { CompanyState, EmployeeId, Zone } from "../types";
-import { activePip, canTerminate } from "../state/store";
-import { renderIdentitySvg } from "./svg-objects";
-import { hasSprite, spriteHref } from "./sprites";
+import { STAFF_BY_ID } from "../data/staff.ts";
+import { escapeHtml } from "../lib/dom.ts";
+import type { CompanyState, EmployeeId, Zone } from "../types.ts";
+import { activePip, canTerminate } from "../state/store.ts";
+import { renderIdentitySvg } from "./svg-objects.ts";
+import { hasSprite, spriteHref } from "./sprites.ts";
 import {
   renderPipPaper,
   renderReviewPaper,
   renderTerminationPaper,
-} from "./paperwork";
+} from "./paperwork.ts";
 
 export type FormMode = "review" | "pip" | "relocate" | "terminate" | null;
 

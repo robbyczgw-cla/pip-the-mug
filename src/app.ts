@@ -29,6 +29,7 @@ import { renderBanner } from "./ui/banner";
 import { renderAccess } from "./ui/access";
 import { startWebMcp } from "./webmcp/register";
 import { detectSeed } from "./data/seeds";
+import { setPersonnelFileOpener } from "./ui/file";
 
 interface UiState {
   selectedId: EmployeeId | null;
@@ -184,6 +185,12 @@ function bindDrag(svg: SVGSVGElement | null): void {
   svg.addEventListener("pointercancel", endDrag);
 }
 
+function selectEmployee(id: EmployeeId | null): void {
+  ui.selectedId = id;
+  ui.form = null;
+  render();
+}
+
 function onActivate(target: EventTarget | null): void {
   if (skipNextClick) {
     skipNextClick = false;
@@ -192,9 +199,7 @@ function onActivate(target: EventTarget | null): void {
   const el = target instanceof Element ? target.closest("[data-id]") : null;
   const id = el?.getAttribute("data-id");
   if (typeof id === "string" && isEmployeeId(id)) {
-    ui.selectedId = id;
-    ui.form = null;
-    render();
+    selectEmployee(id);
   }
 }
 
@@ -240,6 +245,10 @@ function handleForm(form: HTMLFormElement): void {
 
 export function mount(root: HTMLElement): void {
   loadState(detectSeed());
+  setPersonnelFileOpener((id) => {
+    if (!getState().employees[id]) return;
+    selectEmployee(id);
+  });
   startWebMcp();
   root.innerHTML = `
     <div data-header></div>
@@ -261,9 +270,7 @@ export function mount(root: HTMLElement): void {
     if (!(target instanceof Element)) return;
 
     if (target.closest("[data-action=close-panel]")) {
-      ui.selectedId = null;
-      ui.form = null;
-      render();
+      selectEmployee(null);
       return;
     }
     if (target.closest("[data-action=cancel-form]")) {

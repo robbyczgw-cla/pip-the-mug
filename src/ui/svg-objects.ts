@@ -1,5 +1,5 @@
-import type { EmployeeId } from "../types";
-import { spriteHref } from "./sprites";
+import type { EmployeeId } from "../types.ts";
+import { spriteHref } from "./sprites.ts";
 
 /**
  * Each employee draws into a 64x64 local box centred on (32, 32), which is the

@@ -1,8 +1,8 @@
-import { RENDER_ORDER, STAFF_BY_ID } from "../data/staff";
-import { escapeHtml } from "../lib/dom";
-import type { CompanyState, EmployeeId, LayoutPose } from "../types";
-import { hasSprite, spriteHref } from "./sprites";
-import { renderObjectSvg } from "./svg-objects";
+import { RENDER_ORDER, STAFF_BY_ID } from "../data/staff.ts";
+import { escapeHtml } from "../lib/dom.ts";
+import type { CompanyState, EmployeeId, LayoutPose } from "../types.ts";
+import { hasSprite, spriteHref } from "./sprites.ts";
+import { renderObjectSvg } from "./svg-objects.ts";
 
 function alumniCards(state: CompanyState): string {
   if (state.alumni.length === 0) {

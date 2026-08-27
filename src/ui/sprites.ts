@@ -1,4 +1,4 @@
-import { EMPLOYEE_IDS, type EmployeeId } from "../types";
+import { EMPLOYEE_IDS, type EmployeeId } from "../types.ts";
 
 export const PROP_SPRITES = ["sink-box", "pip-sticker"] as const;
 

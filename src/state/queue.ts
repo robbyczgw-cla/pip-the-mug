@@ -1,4 +1,4 @@
-import { prefersReducedMotion } from "../lib/dom";
+import { prefersReducedMotion } from "../lib/dom.ts";
 
 const PACE_MS = 600;
 const waiters: Array<() => void> = [];

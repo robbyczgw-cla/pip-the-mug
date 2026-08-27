@@ -12,10 +12,13 @@
     "test": "node --experimental-strip-types --test src/**/*.test.ts"
   },
   "devDependencies": {
+    "happy-dom": "^20.11.9",
     "typescript": "~5.9.2",
     "vite": "^7.1.5"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
