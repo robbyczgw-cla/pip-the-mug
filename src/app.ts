@@ -50,6 +50,34 @@ const ui: UiState = {
 let skipNextClick = false;
 let lastFollowedLog = "";
 let flashTimer = 0;
+/** What the panel currently shows, so a store update never re-renders a form mid-typing. */
+let renderedForm: FormMode = null;
+let renderedId: EmployeeId | null = null;
+
+function waitForDrawerClosed(drawer: Element | null): Promise<void> {
+  if (!drawer || prefersReducedMotion()) return Promise.resolve();
+  const style = window.getComputedStyle(drawer);
+  if (style.transitionDuration === "0s" || !style.transitionProperty.includes("transform")) {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      drawer.removeEventListener("transitionend", onEnd);
+      resolve();
+    };
+    const onEnd = (event: Event) => {
+      if (!(event instanceof TransitionEvent)) return;
+      if (event.target !== drawer) return;
+      if (event.propertyName !== "transform") return;
+      finish();
+    };
+    drawer.addEventListener("transitionend", onEnd);
+    window.setTimeout(finish, 400);
+  });
+}
 
 function isEmployeeId(value: string): value is EmployeeId {
   return Boolean(getState().employees[value as EmployeeId]);
@@ -70,16 +98,19 @@ function followAgent(state: ReturnType<typeof getState>): void {
   if (latest.actor === "agent" && latest.employeeId) {
     ui.selectedId = latest.employeeId;
     ui.form = null;
+    window.clearTimeout(flashTimer);
+    if (prefersReducedMotion()) {
+      ui.flashId = null;
+      ui.flashZone = null;
+      return;
+    }
     ui.flashId = latest.employeeId;
     ui.flashZone = state.employees[latest.employeeId]?.zone ?? null;
-    window.clearTimeout(flashTimer);
-    if (!prefersReducedMotion()) {
-      flashTimer = window.setTimeout(() => {
-        ui.flashId = null;
-        ui.flashZone = null;
-        render();
-      }, 480);
-    }
+    flashTimer = window.setTimeout(() => {
+      ui.flashId = null;
+      ui.flashZone = null;
+      render();
+    }, 480);
   }
 }
 
@@ -121,9 +152,17 @@ function render(): void {
       el.style.transform = next;
     });
   }
-  const keepForm = Boolean(ui.form && ui.selectedId && state.activity[0]?.actor !== "agent");
+  const keepForm = Boolean(
+    ui.form &&
+      ui.selectedId &&
+      ui.form === renderedForm &&
+      ui.selectedId === renderedId &&
+      state.activity[0]?.actor !== "agent",
+  );
   if (!keepForm) {
     panel.innerHTML = renderPanel(ui.selectedId, state, ui.form);
+    renderedForm = ui.form;
+    renderedId = ui.selectedId;
   }
   log.innerHTML = renderActivityLog(state.activity, ui.logOpen);
   const pending = state.pendingTermination;
@@ -320,10 +359,19 @@ export function mount(root: HTMLElement): void {
     if (target.closest("[data-action=confirm-terminate]")) {
       const pending = consumePendingTermination();
       if (!pending) return;
-      void enqueue(() => {
-        terminate(pending.employeeId, pending.reason, "human");
-        playPaperShuffle(getState().soundEnabled);
-      });
+      const drawer = document.querySelector(".drawer");
+      const commit = () => {
+        void enqueue(() => {
+          terminate(pending.employeeId, pending.reason, "human");
+          playPaperShuffle(getState().soundEnabled);
+        });
+      };
+      if (ui.selectedId) {
+        selectEmployee(null);
+        void waitForDrawerClosed(drawer).then(commit);
+      } else {
+        commit();
+      }
       return;
     }
     if (target.closest("[data-action=cancel-terminate]")) {

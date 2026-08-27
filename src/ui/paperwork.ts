@@ -5,7 +5,10 @@ import type { EmployeeRuntime, PaperItem, PipRecord, ReviewRecord, TerminationRe
 function checks(items: string[]): string {
   if (items.length === 0) return `<p class="muted">None listed.</p>`;
   return `<div class="checks">${items
-    .map((item) => `<label><input type="checkbox" checked disabled /> ${escapeHtml(item)}</label>`)
+    .map(
+      (item) =>
+        `<label class="check-row"><input type="checkbox" class="check-box" checked disabled /><span>${escapeHtml(item)}</span></label>`,
+    )
     .join("")}</div>`;
 }
 
