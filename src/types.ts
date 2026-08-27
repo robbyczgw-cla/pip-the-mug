@@ -109,6 +109,12 @@ export interface PaperItem {
   createdAt: string;
 }
 
+export interface PendingTermination {
+  requestId: string;
+  employeeId: EmployeeId;
+  reason: string;
+}
+
 export interface EmployeeRuntime {
   id: EmployeeId;
   title: string;
@@ -130,6 +136,7 @@ export interface CompanyState {
   alumni: TerminationRecord[];
   activity: ActivityEntry[];
   papers: PaperItem[];
+  pendingTermination: PendingTermination | null;
 }
 
 export interface ToolResult<T> {

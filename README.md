@@ -30,7 +30,7 @@ Four availability rules matter before you point an agent at this.
 
 Once an object is terminated it keeps showing up in `list_staff` as alumni, but every write tool refuses it. Alumni are read-only.
 
-`terminate` carries `destructiveHint` and asks for confirmation before it does anything. It routes through the client's `requestUserInteraction` when the agent runtime offers one, which is what puts the consent prompt in front of you rather than in front of the model, and falls back to `window.confirm` otherwise. Cancel and the tool returns a refusal the agent can read.
+`terminate` is destructive. If the client has a working confirmation callback, the tool waits for it. If that method is missing or throws unsupported, including the Codex WebMCP shim, the tool does not fire anyone. It opens Form SEP-1 on the page and returns `requires_user_action`. The agent must stop and ask you to click Confirm termination. It must not click that control.
 
 ## Try it
 
@@ -78,9 +78,9 @@ Forty seconds, from a fresh `/demo`.
 
 **0:20** The Mug scores a 2. The agent calls `put_on_pip` on its own, or you ask it to. A second yellow sticker appears, and `resolve_pip` shows up in the inspector now that a plan is open.
 
-**0:26** Say: "Terminate the mug." The browser puts up its own consent dialog naming the Mug and the Donated / Sink box. The model cannot click it. You can.
+**0:26** Say: "Terminate the mug." The tool returns `requires_user_action` and Form SEP-1 opens. The agent must say: click Confirm termination. It must not click the control.
 
-**0:32** Confirm. The Mug slides into the Donated / Sink box, its name goes on the alumni wall, and its write tools vanish from the tool list.
+**0:32** You click Confirm. The Mug slides into the Donated / Sink box, its name goes on the alumni wall, and its write tools vanish from the tool list.
 
 **0:36** Say: "Promote the pen." The Ballpoint Pen moves to the prime spot by the monitor with a new title, and `terminate` is now unavailable for it until next quarter. End on the org chart.
 

@@ -2,8 +2,10 @@ import { STAFF_BY_ID } from "../data/staff";
 import { playPaperShuffle } from "../lib/audio";
 import { enqueue } from "../state/queue";
 import { listStaffRows, orgChart } from "../state/org";
+import { requestTerminationConfirmation } from "./confirm";
 import {
   activePip,
+  beginPendingTermination,
   canTerminate,
   getState,
   promote,
@@ -39,16 +41,7 @@ function lines(value: unknown): string[] {
   return [];
 }
 
-async function confirmSensitive(extra: unknown, message: string): Promise<boolean> {
-  const client = extra as {
-    requestUserInteraction?: (cb: () => Promise<unknown>) => Promise<unknown>;
-  } | null;
-  if (client && typeof client.requestUserInteraction === "function") {
-    const result = await client.requestUserInteraction(async () => window.confirm(message));
-    return Boolean(result);
-  }
-  return window.confirm(message);
-}
+
 
 function filePayload(id: EmployeeId) {
   const record = STAFF_BY_ID[id];
@@ -296,7 +289,7 @@ export function buildTools(): WebMcpTool[] {
       name: "terminate",
       title: "Terminate",
       description:
-        "SENSITIVE. Separate an employee from Desk 4B. The browser must confirm before this runs. On confirm the object animates into the Donated / Sink box and the name is pinned to the alumni wall. Unavailable for anyone promoted this quarter. Do not call this on alumni. After success, write tools for that id disappear.",
+        "SENSITIVE. Request separation of an employee from Desk 4B. If the client supports a working confirmation callback, the tool waits for that answer. If the callback is missing or throws unsupported (including the Codex WebMCP shim), the tool does NOT terminate. It opens Form SEP-1 on the page and returns status requires_user_action. Pause and ask the user to click Confirm termination themselves. Do not click that control. Unavailable after a same-quarter promotion or for alumni.",
       inputSchema: {
         type: "object",
         properties: {
@@ -318,19 +311,43 @@ export function buildTools(): WebMcpTool[] {
             summary: `${name} cannot be terminated this quarter (alumni or recent promotion).`,
           };
         }
+        const open = getState().pendingTermination;
+        if (open) {
+          return {
+            ok: false,
+            status: "requires_user_action",
+            action: "confirm_termination_in_page",
+            employeeId: open.employeeId,
+            requestId: open.requestId,
+            summary:
+              "Termination is pending. Ask the user to confirm it in the visible SEP-1 panel. Do not click the confirmation control for them.",
+          };
+        }
         const reason = String(input.reason ?? "Not specified.");
-        const confirmed = await confirmSensitive(
+        const decision = await requestTerminationConfirmation(
           extra,
           `Terminate ${name}? They will be moved to the Donated / Sink box. This cannot be undone except by Reset company.`,
         );
-        if (!confirmed) {
-          return { ok: false, summary: `Termination of ${name} cancelled by upper management.` };
+        if (decision.kind === "resolved") {
+          if (!decision.confirmed) {
+            return { ok: false, summary: `Termination of ${name} cancelled by upper management.` };
+          }
+          return enqueue(() => {
+            const result = terminate(id, reason, "agent");
+            if (result.ok) playPaperShuffle(getState().soundEnabled);
+            return result;
+          });
         }
-        return enqueue(() => {
-          const result = terminate(id, reason, "agent");
-          if (result.ok) playPaperShuffle(getState().soundEnabled);
-          return result;
-        });
+        const pending = beginPendingTermination(id, reason, "agent");
+        return {
+          ok: false,
+          status: "requires_user_action",
+          action: "confirm_termination_in_page",
+          employeeId: pending.pending.employeeId,
+          requestId: pending.pending.requestId,
+          summary:
+            "Termination is pending. Ask the user to confirm it in the visible SEP-1 panel. Do not click the confirmation control for them.",
+        };
       },
     });
   }

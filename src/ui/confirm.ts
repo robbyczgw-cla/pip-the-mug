@@ -9,7 +9,7 @@ export function renderConfirm(id: EmployeeId, reason: string): string {
       <div class="modal">
         <p class="panel-kicker">Sensitive action · Form SEP-1</p>
         <h2 id="term-title">Terminate ${escapeHtml(record.name)}?</h2>
-        <p>This moves ${escapeHtml(record.name)} into the Donated / Sink box and onto the alumni wall. The browser should also ask you to confirm.</p>
+        <p>This moves ${escapeHtml(record.name)} into the Donated / Sink box and onto the alumni wall. An agent cannot click this control. Upper management has to confirm it here.</p>
         <p><strong>Reason on file:</strong> ${escapeHtml(reason)}</p>
         <div class="actions">
           <button type="button" class="solid-btn danger" data-action="confirm-terminate">Confirm termination</button>

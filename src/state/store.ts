@@ -8,6 +8,7 @@ import type {
   EmployeeRuntime,
   LayoutPose,
   PaperKind,
+  PendingTermination,
   PipDays,
   PipOutcome,
   Zone,
@@ -85,6 +86,7 @@ export function createDefaultState(): CompanyState {
     alumni: [],
     activity: [],
     papers: [],
+    pendingTermination: null,
   };
 }
 
@@ -123,7 +125,7 @@ export function loadState(): CompanyState {
       state = createDefaultState();
       return state;
     }
-    state = parsed;
+    state = { ...parsed, pendingTermination: parsed.pendingTermination ?? null };
     return state;
   } catch {
     state = createDefaultState();
@@ -345,10 +347,48 @@ export function terminate(
     employees: { ...state.employees, [id]: nextEmp },
     alumni: [{ employeeId: id, reason, at: new Date().toISOString() }, ...state.alumni],
     papers: paper(state, "termination", id),
+    pendingTermination: null,
     activity: log(state, "terminate", actor, summary, id),
   };
   emit();
   return { ok: true, summary };
+}
+
+export function beginPendingTermination(
+  id: EmployeeId,
+  reason: string,
+  actor: Actor,
+): { created: boolean; pending: PendingTermination } {
+  if (state.pendingTermination) {
+    return { created: false, pending: state.pendingTermination };
+  }
+  const pending: PendingTermination = {
+    requestId: uid("sep"),
+    employeeId: id,
+    reason,
+  };
+  const summary = `Termination of ${id} is pending Form SEP-1. Upper management must click Confirm termination.`;
+  state = {
+    ...state,
+    pendingTermination: pending,
+    activity: log(state, "terminate", actor, summary, id),
+  };
+  emit();
+  return { created: true, pending };
+}
+
+export function consumePendingTermination(): PendingTermination | null {
+  const pending = state.pendingTermination;
+  if (!pending) return null;
+  state = { ...state, pendingTermination: null };
+  emit();
+  return pending;
+}
+
+export function clearPendingTermination(): void {
+  if (!state.pendingTermination) return;
+  state = { ...state, pendingTermination: null };
+  emit();
 }
 
 export function setDeskLead(id: EmployeeId, actor: Actor): void {

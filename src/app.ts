@@ -5,7 +5,10 @@ import { prefersReducedMotion } from "./lib/dom";
 import { enqueue } from "./state/queue";
 import { zoneAt } from "./state/layout";
 import {
+  beginPendingTermination,
+  clearPendingTermination,
   closeQuarter,
+  consumePendingTermination,
   getState,
   loadState,
   promote,
@@ -32,14 +35,12 @@ interface UiState {
   selectedId: EmployeeId | null;
   form: FormMode;
   logOpen: boolean;
-  pendingTerminate: { id: EmployeeId; reason: string } | null;
 }
 
 const ui: UiState = {
   selectedId: null,
   form: null,
   logOpen: true,
-  pendingTerminate: null,
 };
 
 let skipNextClick = false;
@@ -104,9 +105,8 @@ function render(): void {
     panel.innerHTML = renderPanel(ui.selectedId, state, ui.form);
   }
   log.innerHTML = renderActivityLog(state.activity, ui.logOpen);
-  modal.innerHTML = ui.pendingTerminate
-    ? renderConfirm(ui.pendingTerminate.id, ui.pendingTerminate.reason)
-    : "";
+  const pending = state.pendingTermination;
+  modal.innerHTML = pending ? renderConfirm(pending.employeeId, pending.reason) : "";
   bindDrag(scene.querySelector("svg"));
 }
 
@@ -161,11 +161,11 @@ function bindDrag(svg: SVGSVGElement | null): void {
     const zone = zoneAt(point.x, point.y);
     void enqueue(() => {
       if (zone === "sink") {
-        ui.pendingTerminate = {
-          id: current.id,
-          reason: "Relocated to the Donated / Sink box by upper management.",
-        };
-        render();
+        beginPendingTermination(
+          current.id,
+          "Relocated to the Donated / Sink box by upper management.",
+          "human",
+        );
         return;
       }
       relocate(current.id, zone, "human", { x: point.x - 24, y: point.y - 24, rotate: getState().employees[current.id].pose.rotate });
@@ -223,7 +223,7 @@ function handleForm(form: HTMLFormElement): void {
     } else if (kind === "relocate") {
       relocate(id, String(data.get("zone")) as Zone, "human");
     } else if (kind === "terminate") {
-      ui.pendingTerminate = { id, reason: String(data.get("reason") ?? "") };
+      beginPendingTermination(id, String(data.get("reason") ?? ""), "human");
     }
     ui.form = null;
     render();
@@ -291,18 +291,17 @@ export function mount(root: HTMLElement): void {
       }
       return;
     }
-    if (target.closest("[data-action=confirm-terminate]") && ui.pendingTerminate) {
-      const pending = ui.pendingTerminate;
-      ui.pendingTerminate = null;
+    if (target.closest("[data-action=confirm-terminate]")) {
+      const pending = consumePendingTermination();
+      if (!pending) return;
       void enqueue(() => {
-        terminate(pending.id, pending.reason, "human");
+        terminate(pending.employeeId, pending.reason, "human");
         playPaperShuffle(getState().soundEnabled);
       });
       return;
     }
     if (target.closest("[data-action=cancel-terminate]")) {
-      ui.pendingTerminate = null;
-      render();
+      clearPendingTermination();
       return;
     }
 
@@ -345,7 +344,7 @@ export function mount(root: HTMLElement): void {
 
   root.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
-      ui.pendingTerminate = null;
+      clearPendingTermination();
       ui.form = null;
       ui.selectedId = null;
       render();
