@@ -55,7 +55,7 @@ Final edit prompt, 2026-08-28:
 | Generator | Grok Imagine via `image_gen`, then `image_edit` |
 | Created | 2026-08-27, 12:10 CEST. Edited 2026-08-28. |
 | First commit | `550135a` (blank sticky note) |
-| PIP-edit commit | recorded after this change lands |
+| PIP-edit commit | `bb9447f` |
 | Reference image | None for the first generation. The edit used that file as the source. |
 | SHA-256 | `16360354dd26e020252a89b25a9b0970db5f23466c24fd9bcc2ddbd6cb88938f` |
 
