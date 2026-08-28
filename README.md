@@ -206,17 +206,13 @@ Deployment target is Vercel, static, no functions. `vercel.json` rewrites app ro
 
 ## Screenshots
 
-**These four are temporary and pending replacement.** They were captured in a browser without WebMCP, so the banner reads "No WebMCP. Manual mode still works.", the access strip reads "9 tools manual only", and every activity row reads HUMAN. The page still builds and lists the same nine tools, and Form SEP-1 still gates the termination, which is manual parity working as designed. What they do not show is an Agent row, and none of the captions below claims one.
-
-A three-image set replaces them once the owner transfers the `work/demo7/` captures: the reset demo seed with nine tools, Form SEP-1 raised by an agent action, and the confirmed termination with the Human audit row. Until then, run `docs/demo-protocol.md` yourself or watch the video to see the Agent and Human rows side by side.
+These captures come from one WebMCP run in ChatGPT's in-app browser. The first frame is the reset seed, the second is the point where the agent has stopped at SEP-1, and the third follows the human confirmation.
 
 ![Desk 4B on a fresh demo seed. Eight objects, the Plant's PIP-90 card on the blotter, an empty alumni wall reading "No separations this quarter", and the nine tool names listed across the access strip.](docs/demo/desk-initial.png)
 
-![Mug on the blotter, still employed, now carrying a yellow PIP sticker, with its PIP-90 card filed next to it on the blotter.](docs/demo/sep1-before.png)
+![Form SEP-1 raised by the agent's terminate call. Mug remains employed, the activity log records the pending request as Agent, and only upper management can choose Confirm termination or Keep employed.](docs/demo/sep1-open.png)
 
-![Form SEP-1. The dialog reads "The agent cannot click this control. Upper management has to confirm it here. Mug stays employed until you do.", with Confirm termination and Keep employed as the only ways out.](docs/demo/sep1-open.png)
-
-![After confirmation. Mug sits in the Donated / Sink box, the alumni wall reads "Mug separated", and the blotter is empty.](docs/demo/sep1-after.png)
+![After confirmation. Mug sits in the Donated / Sink box, the alumni wall reads "Mug separated", and the activity log records the separation as Human.](docs/demo/sep1-after.png)
 
 ## Security and the trust boundary
 

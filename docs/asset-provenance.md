@@ -2,7 +2,7 @@
 
 Every file in this repository that is not source code, plus the assets used to produce the submission video. The Devpost rules require a public repo containing the source, the assets, the instructions, and an open-source license visible in the GitHub About box.
 
-Every asset in this repository is cleared, and each row says on what basis. Do not reopen one without a reason. Two items are still open, and neither is a file in the repo: the soundtrack for the YouTube cut, and the homepage music loop if the demo ends up loading one. Should a future row need **UNKNOWN, OWNER REVIEW REQUIRED**, that marker means nobody has checked the terms yet and the row is not a claim of any license.
+Every asset used by the repository and the final submission video is cleared, and each row says on what basis. The optional homepage music loop is not part of the app or release.
 
 ## Summary
 
@@ -15,10 +15,10 @@ Every asset in this repository is cleared, and each row says on what basis. Do n
 | Logo | `public/logo.jpg` | Cleared. Grok Imagine output, owned by the owner, commercial use permitted by xAI. Credit "Created with Grok." |
 | Fonts | `src/styles.css` | System font stacks, no files bundled |
 | Sound in the app | `src/lib/audio.ts` | Synthesized at runtime, no audio file |
-| Homepage loop | `public/audio/`, not present | Owner transfer pending. The app loads no loop today |
-| Screenshots | `docs/demo/*.png` | Original captures. The current four are temporary, pending replacement |
+| Homepage loop | `public/audio/`, not present | Not used. The app loads no music file |
+| Screenshots | `docs/demo/*.png` | Cleared. Original captures from a verified WebMCP run |
 | Video narration | not in repo | Cleared. Grok, xAI TTS, voice Rigel |
-| Video soundtrack | not in repo | Open. The owner has not recorded which track the YouTube cut uses |
+| Video soundtrack | not in repo | Cleared. ElevenLabs Music API paid-plan generation, recorded below |
 
 ## Source code
 
@@ -103,23 +103,19 @@ This is the only sound the app makes today. A homepage music loop is a separate,
 
 ## Screenshots
 
-`docs/demo/*.png` are original screen captures of this application. No third-party content, no trademarks, no personal data. Covered by the repository's MIT license.
+`docs/demo/*.png` are original screen captures of this application. They include the PixelLab sprites and Grok-generated header logo under the terms recorded above. The captures contain no third-party trademarks or personal data. The repository's MIT license does not replace the asset terms.
 
-**The four on disk today are temporary.** `desk-initial.png`, `sep1-before.png`, `sep1-open.png`, and `sep1-after.png` were captured in a browser without WebMCP. The banner reads "No WebMCP. Manual mode still works.", the access strip reads "9 tools manual only", and every activity row reads HUMAN, including the pending termination request. They show manual parity, which is real, but they do not show an Agent row. No caption anywhere should claim they do.
+The three files were captured on 2026-08-28 in ChatGPT's in-app browser at 1440 by 900 from one reset demo run:
 
-Three replacements are coming from the owner's `work/demo7/` captures, which are not on this host yet. See owner transfer.
-
-| Source file | Destination | What it shows |
+| File | What it shows | SHA-256 |
 | --- | --- | --- |
-| `work/demo7/00-seed.png` | `docs/demo/desk-initial.png` | The freshly reset demo seed with nine tools |
-| `work/demo7/05-sep1.png` | `docs/demo/sep1-open.png` | Form SEP-1 raised by an agent action |
-| `work/demo7/06-mug-alumni.png` | `docs/demo/sep1-after.png` | The confirmed termination with the Human audit row |
-
-Three files replace four, so `sep1-before.png` goes away. Update the captions in `README.md` and `docs/devpost-submission.md` in the same pass.
+| `docs/demo/desk-initial.png` | Reset seed, eight objects, Plant on PIP, nine WebMCP tools | `3cfd1d119f49ac20ebc8cfb6ea7cc5788334b5798226e4f21d407147bc72838f` |
+| `docs/demo/sep1-open.png` | `terminate` returned `requires_user_action`; SEP-1 is visible and Mug is still employed | `b7c84662ea15c9e4b268e144861ba2059c42b11724b14ffe64420e96a31ed47d` |
+| `docs/demo/sep1-after.png` | Mug in the sink; the log records the request as Agent and the separation as Human | `daf87e505674872ea01d427af90adbae5082ad571e68e8eb0fa8e06b17d20398` |
 
 ## Audio and video assets
 
-Two different things live under this heading and merging them would be a mistake. The submission video stays outside the repository and goes to YouTube. The homepage loop, if the public demo ever loads one, is a repository asset with its own provenance row.
+The submission video and a possible homepage loop are separate assets. The video stays outside the repository and goes to YouTube. A homepage loop would be a repository asset with its own provenance row.
 
 ### The `-paid` rule for ElevenLabs audio
 
@@ -150,17 +146,15 @@ Neither file is on this host. `public/audio/` does not exist.
 
 Not in the repository, and nothing in the app wants one yet. `public/audio/` does not exist, `src/lib/audio.ts` synthesizes the paper-shuffle cue at runtime, and no source file references an `.mp3` or an `.ogg`. So the homepage has no background music file, and that is the current, accurate state.
 
-If the public demo is going to load the loop, the two files transfer to `public/audio/pip-the-mug-homepage-loop-paid.mp3` and `.ogg`, the exact paths `.gitignore` allows. They become repository assets at that moment, and this section then needs a filled-in ElevenLabs paid-plan row taken from `pip-the-mug-elevenlabs-music-provenance-paid.json`. That JSON is not on this host, so the terms stay unfilled.
-
-Owner action, tracked in `docs/public-release-checklist.md`.
+The final public demo does not load the loop. The files remain outside the repository. Adding homepage music later would be a new release change requiring its own playback controls, provenance update, and browser test.
 
 ### Video soundtrack
 
-**Open.** The owner has not recorded which track the YouTube cut uses.
+**Cleared.** The final 1 minute 53.642 second video uses `pip-the-mug-demo-underscore-paid.mp3`, generated through the ElevenLabs Music API after the owner stated that the same account had been upgraded to the Starter paid plan. The API request began at `2026-08-28T09:32:19Z`, used model `music_v2`, requested `mp3_48000_192`, and forced an instrumental result. The subscription tier was not queried by automation, so the owner retains the Starter receipt separately.
 
-It could be the homepage loop, another paid ElevenLabs file that stays off-repo, or no music. Those are three different decisions with three different records, so do not assume the video and the homepage share a track. The owner has not said they do.
+The unchanged API source has SHA-256 `54611b2da07c60f2ea237086f0e1fd1c68512e8d913e18823376e5b0a4e50fa1`. The trimmed and normalized track used for the edit has SHA-256 `105d666848c93890712c88fa78ab8253e20526b2d7ee44b27908efd59b1621c7`. It is 113.642 seconds, 48 kHz stereo, MP3 at 192 kbps. The final MP4 has SHA-256 `23f4f507372a7e04ae20b941de8ab1d48c62b10f239459ba4c27ab926ce9dbbf` and stores the mixed audio as 48 kHz stereo AAC.
 
-Any ElevenLabs audio in the cut falls under the `-paid` rule above and needs its plan, date, and terms written here. A non-ElevenLabs choice, an original composition or a CC0 track, sits outside the naming rule and still needs its source and terms written here.
+Both ElevenLabs API calls requested C2PA signing. The unchanged API source is retained outside the repository. The processed track and final MP4 are derivatives, so this record does not claim that the source manifest survived re-encoding. ElevenLabs states that output generated during a paid subscription can be used commercially: https://help.elevenlabs.io/hc/en-us/articles/13313564601361-Can-I-publish-the-content-I-generate-on-the-platform. The Music API licensing page covers normal online video use: https://elevenlabs.io/eleven-music-api.
 
 ### Narration
 
@@ -169,22 +163,6 @@ Any ElevenLabs audio in the cut falls under the `-paid` rule above and needs its
 English narration created with Grok using xAI TTS, voice Rigel. Script written for this project.
 
 The narration file is not in the repository and stays out with the rest of the video. The YouTube description carries the line "Narration created with Grok". Naming the tool in prose is the whole of it. No xAI or Grok logo goes in the video, the README, the screenshots, or the Devpost project image, and no logo file enters the repo.
-
-## Owner transfer
-
-Three files live on the owner's Mac. They are not on this host, and nobody should go looking for them here.
-
-```
-/Users/robby/Documents/Codex/2026-08-27/ff/outputs/pip-the-mug-homepage-loop-paid.mp3
-/Users/robby/Documents/Codex/2026-08-27/ff/outputs/pip-the-mug-homepage-loop-paid.ogg
-/Users/robby/Documents/Codex/2026-08-27/ff/outputs/pip-the-mug-elevenlabs-music-provenance-paid.json
-```
-
-The two audio files go to `public/audio/` at the gitignore exception paths, and only if the public demo loads the loop. If it does not, they stay off-repo and the homepage keeps no music file.
-
-The JSON is a provenance record, not a public homepage asset. It does not belong in `public/`. Once it is here, copy its facts into the homepage loop section above. Until then that section stays unfilled.
-
-The `work/demo7/` screenshots are part of the same transfer. See the screenshots section for where the three files go.
 
 ## Trademarks
 
