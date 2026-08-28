@@ -6,3 +6,9 @@ dist
 .env
 .env.*
 VIDEO.md
+*.mp3
+*.wav
+*.m4a
+*.ogg
+!public/audio/pip-the-mug-homepage-loop-paid.mp3
+!public/audio/pip-the-mug-homepage-loop-paid.ogg

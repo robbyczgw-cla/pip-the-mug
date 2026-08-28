@@ -35,7 +35,8 @@ export function renderTryIt(open: boolean): string {
     ? `
       <div class="try-it-body">
         <p>Your agent should call the named WebMCP tools on this page (<code>list_staff</code>, <code>get_personnel_file</code>, and the rest). It should not click the desk or fill the HR forms in the DOM.</p>
-        <p class="try-it-warn">Terminating Mug opens Form SEP-1. Mug stays employed until you click Confirm termination. The agent must not click that control.</p>
+        <p>Use ChatGPT’s in-app browser, or Chrome 149 or later with <code>chrome://flags/#enable-webmcp-testing</code> enabled and the browser relaunched.</p>
+        <p class="try-it-warn">Terminating Mug opens Form SEP-1. Mug stays employed until you click Confirm termination. The agent must stop there and must not click that control.</p>
         <label class="try-it-prompt-label" for="demo-prompt">Demo prompt</label>
         <textarea id="demo-prompt" class="try-it-prompt" readonly rows="12">${escapeHtml(DEMO_PROMPT)}</textarea>
         <div class="try-it-actions">

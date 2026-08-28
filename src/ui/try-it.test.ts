@@ -22,9 +22,11 @@ test("try-it guide is collapsed by default and expands in place", () => {
   assert.match(open, /aria-expanded="true"/);
   assert.match(open, /named WebMCP tools/);
   assert.match(open, /Form SEP-1/);
+  assert.match(open, /ChatGPT/);
+  assert.match(open, /Chrome 149/);
   assert.match(open, /data-action="copy-demo-prompt"/);
   assert.match(open, /data-action="reset-company"/);
-  assert.match(open, /Do not click Confirm/);
+  assert.match(open, /must not click that control/);
 });
 
 test("copyDemoPrompt writes the demo prompt to the clipboard", async () => {
