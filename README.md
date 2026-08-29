@@ -120,9 +120,9 @@ These are the tools registered on the public demo seed. Nine, because Plant star
 
 | Tool | Purpose | Read or write | Registered when | Returns `ok: false` when | Needs a human |
 | --- | --- | --- | --- | --- | --- |
-| `list_staff` | Roster with title, department, tenure, standing, zone, last rating. Alumni included. | Read (`readOnlyHint: true`) | Always | Never | No |
-| `get_personnel_file` | One employee: backstory, past and live reviews, incidents, open PIP, promoted-this-quarter flag. Also opens the file on screen. | Read (`readOnlyHint: true`) | Always | Unknown id | No |
-| `get_org_chart` | Reporting lines and the current Interim Desk Lead. Terminated staff omitted. | Read (`readOnlyHint: true`) | Always | Never | No |
+| `list_staff` | Roster with title, department, tenure, standing, zone, last rating. Alumni included. | Read (`readOnlyHint: true`, `untrustedContentHint: true`) | Always | Never | No |
+| `get_personnel_file` | One employee: backstory, past and live reviews, incidents, open PIP, promoted-this-quarter flag. Also opens the file on screen. | Read (`readOnlyHint: true`, `untrustedContentHint: true`) | Always | Unknown id | No |
+| `get_org_chart` | Reporting lines and the current Interim Desk Lead. Terminated staff omitted. | Read (`readOnlyHint: true`, `untrustedContentHint: true`) | Always | Never | No |
 | `write_review` | Files a Q3 review, rating 1 to 5, with summary, strengths, concerns. Form PR-12 appears. | Write | While at least one employee is not terminated | Unknown id, rating outside 1 to 5, target is alumni | No |
 | `put_on_pip` | Opens a 30, 60, or 90 day plan with goals. Yellow sticker on the object. | Write | While at least one employee is not terminated | Unknown id, `days` not 30/60/90, a PIP is already open, target is alumni | No |
 | `resolve_pip` | Closes an open plan as `passed` or `failed`. | Write | Only while at least one PIP is open | Unknown id, no open PIP, outcome not `passed`/`failed`, target is alumni | No |
@@ -147,7 +147,7 @@ Descriptions are written for an agent to read rather than for a docs page, and e
 
 ## The tool list is rebuilt, not patched
 
-`startWebMcp()` subscribes to the store. On every state change it rebuilds the tool definitions and compares the JSON of `{name, inputSchema}` against the last registration. If anything moved, it aborts the previous `AbortController` and registers the whole set again. Registrations carry that signal, so a run superseded mid-loop stops instead of racing the new one. Nothing is patched in place, so whatever your client lists is the current desk.
+`startWebMcp()` subscribes to the store. On every state change it rebuilds the tool definitions and compares the JSON of `{name, title, description, inputSchema, annotations}` against the last registration. If anything moved, it aborts the previous `AbortController` and registers the whole set again. Registrations carry that signal, so a run superseded mid-loop stops instead of racing the new one. Nothing is patched in place, so whatever your client lists is the current desk.
 
 This is the part I would keep if I threw out everything else. The id enums come from the live roster, so terminating someone narrows the enums on `put_on_pip`, `promote`, `relocate`, and `terminate`. Opening a PIP makes `resolve_pip` exist; closing it makes the tool vanish. Terminate the entire desk and the write tools stop being registered altogether, leaving the three read tools. Most permissions are expressed by the absence of a callable tool. The same-quarter cooling-off rule stays visible as an explicit refusal with an explanation.
 

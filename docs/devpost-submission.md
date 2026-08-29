@@ -50,7 +50,7 @@ Everything also works by hand. A browser with no WebMCP support runs the whole a
 
 Client-only TypeScript on Vite. No backend, no model inside the app, no API keys, no network calls of its own. State is one versioned JSON document in `localStorage`, one key per seed.
 
-Registration lives in `src/webmcp/register.ts`. It looks for `document.modelContext` and falls back to `navigator.modelContext`. `startWebMcp()` subscribes to the store, and on every state change it rebuilds the tool definitions and hashes each tool's name and input schema. If the signature moved, it aborts the previous `AbortController` and re-registers the whole set. Nothing is patched in place, so what your client lists is always the current desk.
+Registration lives in `src/webmcp/register.ts`. It looks for `document.modelContext` and falls back to `navigator.modelContext`. `startWebMcp()` subscribes to the store, and on every state change it rebuilds the tool definitions and serializes each tool's name, title, description, input schema, and annotations into a signature. If the signature moved, it aborts the previous `AbortController` and re-registers the whole set. Nothing is patched in place, so what your client lists is always the current desk.
 
 The tools are in `src/webmcp/tools.ts`, built fresh from state on every call to `buildTools()`. Descriptions are written for an agent to read. Every call returns a structured object plus a one-line summary.
 
@@ -107,9 +107,9 @@ The four criteria are equally weighted, so here is where to look for each.
 
 ### WebMCP leverage
 
-Nine tools on the public demo seed, defined in `src/webmcp/tools.ts`: `list_staff`, `get_personnel_file`, `get_org_chart` (all `readOnlyHint: true`), then `write_review`, `put_on_pip`, `resolve_pip`, `promote`, `relocate`, and `terminate` (`destructiveHint: true`).
+Nine tools on the public demo seed, defined in `src/webmcp/tools.ts`: `list_staff`, `get_personnel_file`, `get_org_chart` (all `readOnlyHint: true` and `untrustedContentHint: true`), then `write_review`, `put_on_pip`, `resolve_pip`, `promote`, `relocate`, and `terminate` (`destructiveHint: true`).
 
-The registration is dynamic rather than static. `src/webmcp/register.ts` diffs a signature of each tool's name and input schema on every state change, aborts the prior `AbortController`, and re-registers the whole set. So availability tracks state: `resolve_pip` exists only while a PIP is open, write tools stop being registered when nobody is employed, and id enums shrink as people leave.
+The registration is dynamic rather than static. `src/webmcp/register.ts` diffs each tool's registered metadata on every state change, aborts the prior `AbortController`, and re-registers the whole set when that metadata changes. So availability tracks state: `resolve_pip` exists only while a PIP is open, write tools stop being registered when nobody is employed, id enums shrink as people leave, and quarter-specific descriptions stay current.
 
 The termination handshake supports `requestUserInteraction` when the client offers it and falls back to an in-page confirmation when it does not, including on the current Codex shim. The fallback returns `requires_user_action` without changing employment, then hands the decision back to Upper Management.
 
@@ -169,9 +169,9 @@ WebMCP changes the shape of the problem. The page registers named tools and the 
 
 ### WebMCP leverage
 
-Nine tools on the public demo seed, defined in `src/webmcp/tools.ts`: `list_staff`, `get_personnel_file`, and `get_org_chart` are reads with `readOnlyHint: true`; `write_review`, `put_on_pip`, `resolve_pip`, `promote`, `relocate`, and `terminate` are writes, with `terminate` carrying `destructiveHint: true`.
+Nine tools on the public demo seed, defined in `src/webmcp/tools.ts`: `list_staff`, `get_personnel_file`, and `get_org_chart` are reads with `readOnlyHint: true` and `untrustedContentHint: true`; `write_review`, `put_on_pip`, `resolve_pip`, `promote`, `relocate`, and `terminate` are writes, with `terminate` carrying `destructiveHint: true`.
 
-Registration is dynamic rather than static. `startWebMcp()` in `src/webmcp/register.ts` subscribes to the store, and on every state change it rebuilds the tool definitions and hashes each tool's name and input schema. If the signature moved, it aborts the previous `AbortController` and re-registers the whole set. Nothing is patched in place, so what the client lists is always the current desk.
+Registration is dynamic rather than static. `startWebMcp()` in `src/webmcp/register.ts` subscribes to the store, and on every state change it rebuilds the tool definitions and serializes each tool's name, title, description, input schema, and annotations into a signature. If the signature moved, it aborts the previous `AbortController` and re-registers the whole set. Nothing is patched in place, so what the client lists is always the current desk.
 
 That makes most permissions a property of the tool list rather than a rule in a prompt. `resolve_pip` is registered only while at least one PIP is open; close the plan and the tool disappears. Terminate everyone and the five write tools stop being registered, leaving three reads. Employee id enums are rebuilt from the live roster, so conforming clients reject a hallucinated id before the handler runs, and terminating someone visibly shrinks the enums on the write tools. The same-quarter cooling-off rule remains an explicit tool refusal with an explanation.
 

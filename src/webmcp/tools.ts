@@ -90,7 +90,7 @@ export function buildTools(): WebMcpTool[] {
       description:
         `List current Desk 4B staff with title, department, tenure, standing (active, on_pip, terminated), zone, and last review rating. This desk has ${ID_ENUM.length} employees. Call this first. Terminated staff appear as alumni and have no further write tools. Ids not on this desk are invalid.`,
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, untrustedContentHint: true },
       execute: async () => {
         const rows = listStaffRows(getState());
         return {
@@ -113,7 +113,7 @@ export function buildTools(): WebMcpTool[] {
         required: ["id"],
         additionalProperties: false,
       },
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, untrustedContentHint: true },
       execute: async (input) => {
         const id = asId(input.id);
         if (!id) return { ok: false, summary: "Unknown employee id.", error: "unknown_id" };
@@ -133,7 +133,7 @@ export function buildTools(): WebMcpTool[] {
       description:
         "Return the current hierarchy. Someone is always Interim Desk Lead (usually Monitor unless you promoted someone else). Terminated staff are omitted. Use this to see reporting lines before promoting or relocating.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, untrustedContentHint: true },
       execute: async () => {
         const chart = orgChart(getState());
         return {

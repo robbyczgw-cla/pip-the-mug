@@ -38,7 +38,7 @@ After a fresh load or a reset, `applySeedPlot()` writes the starting story with 
 `src/webmcp/register.ts` owns registration. `startWebMcp()` subscribes to the store and calls `syncWebMcpTools()` on every state change. That function:
 
 1. Builds the current tool set with `buildTools()`.
-2. Computes a signature: `JSON.stringify` of each tool's `{name, inputSchema}`.
+2. Computes a signature: `JSON.stringify` of each tool's `{name, title, description, inputSchema, annotations}`.
 3. Returns immediately if the signature is unchanged and a registration is live.
 4. Bumps a `generation` counter, aborts the previous `AbortController`, and creates a new one.
 5. Yields a macrotask, then bails if a newer generation started while it waited.
@@ -46,13 +46,13 @@ After a fresh load or a reset, `applySeedPlot()` writes the starting story with 
 
 The whole set is torn down and rebuilt. Nothing is patched in place. Two consequences worth naming: what the client lists always matches the desk, and a sync superseded mid-loop stops rather than interleaving with its replacement. A `registerTool` that throws for reasons other than abort is logged with `console.warn` and the loop continues, so one bad tool cannot take down the other eight.
 
-The signature deliberately ignores `description`. Descriptions embed live counts and the current quarter, so including them would re-register the world on every review.
+The signature covers every registered metadata field except the execute callback. A quarter change therefore refreshes the `write_review` description even when names and schemas stay unchanged. State updates that leave all registered metadata unchanged do not trigger another registration.
 
 ### What changes the signature
 
 `buildTools()` in `src/webmcp/tools.ts` reads the store each time it runs.
 
-The three read tools, `list_staff`, `get_personnel_file`, and `get_org_chart`, are always registered and carry `readOnlyHint: true`. `get_personnel_file` changes no state, but it does open the file panel on screen, which is how you watch the agent read.
+The three read tools, `list_staff`, `get_personnel_file`, and `get_org_chart`, are always registered and carry `readOnlyHint: true` and `untrustedContentHint: true`. Their results can contain titles, reviews, PIP text, or reporting data previously written by a human or agent. `get_personnel_file` changes no state, but it does open the file panel on screen, which is how you watch the agent read.
 
 `write_review`, `put_on_pip`, `promote`, `relocate`, and `terminate` are appended only if at least one employee is not terminated. Terminate the whole desk and `buildTools()` returns after the three reads. There is no write tool left to call.
 

@@ -1,5 +1,6 @@
 import { subscribe } from "../state/store";
 import { detectWebMcp } from "./detect";
+import { registrationSignature } from "./signature";
 import { buildTools } from "./tools";
 
 /**
@@ -23,12 +24,7 @@ let started = false;
 let lastSignature = "";
 
 function signature(): string {
-  return JSON.stringify(
-    buildTools().map((tool) => ({
-      name: tool.name,
-      inputSchema: tool.inputSchema,
-    })),
-  );
+  return registrationSignature(buildTools());
 }
 
 export async function syncWebMcpTools(force = false): Promise<void> {
