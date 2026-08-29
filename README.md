@@ -1,8 +1,6 @@
 # PIP the Mug
 
-<img src="public/logo.jpg" alt="PIP the Mug logo: a cream ceramic mug of dark coffee on a wooden desk, with PIP written on a yellow sticky note stuck to the side" width="200" />
-
-<sub>Created with Grok.</sub>
+<img src="public/logo.png" alt="PIP the Mug logo: a cream ceramic mug of stale coffee on a wooden desk, with PIP written on a yellow sticky note stuck to the side" width="200" />
 
 A desk of illustrated office objects that are also the staff of Desk 4B at Desktop Holdings. You are upper management. Your browser's agent is HR. It reads personnel files, writes Q3 reviews, opens Performance Improvement Plans, promotes, moves people between desk zones, and, if you confirm, terminates them.
 
@@ -236,7 +234,7 @@ The code is MIT and original. The favicon is an original SVG. Fonts are system s
 
 The 23 desk sprites in `public/sprites/` are PixelLab pixflux output and they are cleared. Under the PixelLab terms retrieved on 2026-08-28, clauses 1.3 and 3.3, the user owns the outputs and may distribute them for any purpose except training other models without PixelLab's permission. No third-party reference images or trademarks went in as inputs. Note that the sprites are not MIT. The repository's MIT license covers the source; the PNGs are owned outputs carried under those PixelLab terms.
 
-`public/logo.jpg`, the 1024x1024 mug illustration at the top of this file and in the app header, is cleared. The tab icon stays the original SVG. Grok Imagine generated it via `image_gen` on 2026-08-27 from a text prompt with no reference image, then an `image_edit` on 2026-08-28 wrote PIP on the sticky note. The JPEG carries a C2PA manifest naming Grok Imagine as the software agent. xAI permits commercial use of generated outputs and the owner owns this one. It is included here under MIT to the extent applicable. Keep that qualifier. The repository's MIT license covers what the owner can license, and the underlying rights in generated output come from the xAI terms. Attribution is text only, the line "Created with Grok." No xAI or Grok logo appears anywhere.
+`public/logo.png`, the 1254x1254 mug illustration at the top of this file and in the app header, is cleared. OpenAI ImageGen created it through Codex on 2026-08-29 from a text-only prompt with no reference image. The prompt asked for an original cream office mug, stale coffee, a yellow note reading PIP, dark navy outlines, and a walnut desk, with no logos or trademarks. The owner reviewed and accepted the result. Under OpenAI's EU Terms of Use, as between the user and OpenAI and to the extent permitted by applicable law, the user owns the output. The file is included here under MIT to the extent applicable. Full details and the SHA-256 are in `docs/asset-provenance.md`.
 
 No credentials were ever committed.
 

@@ -82,7 +82,7 @@ Concretely: a second seed with more than one pending-approval type, an export of
 
 ## Built with
 
-TypeScript, Vite, WebMCP (`document.modelContext` / `navigator.modelContext`), JSON Schema, Web Audio API, SVG, `localStorage`, PixelLab, xAI Grok TTS, Vercel.
+TypeScript, Vite, WebMCP (`document.modelContext` / `navigator.modelContext`), JSON Schema, Web Audio API, SVG, `localStorage`, PixelLab, ElevenLabs Text to Speech and Music APIs, Vercel.
 
 ## Try it out links
 
@@ -254,7 +254,7 @@ PIP the Mug: a WebMCP desk where your agent is HR and cannot fire anyone alone
 
 ## YouTube description
 
-The current video does not contain `public/logo.jpg`. Add "Logo created with Grok." only if that file becomes the YouTube thumbnail.
+The current video does not contain `public/logo.png`. If the OpenAI ImageGen logo becomes the YouTube thumbnail, record that fact in the media disclosure.
 
 PIP the Mug is a desk of illustrated office objects that are also the staff of Desk 4B at Desktop Holdings. You are upper management. Your browser's agent is HR.
 
@@ -269,7 +269,7 @@ Source (MIT): PUBLIC_REPO_URL
 
 Requires ChatGPT's in-app browser, or Google Chrome 149 or later with chrome://flags/#enable-webmcp-testing enabled.
 
-Narration created with Grok.
+Narration created with ElevenLabs.
 
 Code is MIT licensed. Sprites were generated with PixelLab and are used under the PixelLab terms of service. They are owned outputs, not MIT. Full asset provenance is in docs/asset-provenance.md.
 
@@ -281,7 +281,7 @@ Paste this wherever the submission asks about third-party assets, and keep it ac
 
 **Favicon.** `public/favicon.svg` is an original hand-authored SVG. Covered by the repository's MIT license.
 
-**Screenshots.** `docs/demo/*.png` are original 1440 by 900 captures of one verified WebMCP run in ChatGPT's in-app browser. They show the reset seed, the pending SEP-1 request logged as Agent, and the confirmed separation logged as Human. They include the cleared PixelLab sprites and Grok-generated header logo described above. No third-party trademarks or personal data appears in them.
+**Screenshots.** `docs/demo/*.png` are original 1440 by 900 captures of one verified WebMCP run in ChatGPT's in-app browser. They show the current logo, the reset seed, the pending SEP-1 request logged as Agent, and the confirmed separation logged as Human. No personal data appears in them.
 
 **Fonts.** System font stacks only. No font files are bundled and no webfont is fetched. Naming a family in CSS is not distribution.
 
@@ -289,12 +289,12 @@ Paste this wherever the submission asks about third-party assets, and keep it ac
 
 **Sprites. Cleared.** `public/sprites/` holds 23 PNGs generated with PixelLab using the pixflux mode. The API token was never committed. Terms retrieved 2026-08-28 from https://www.pixellab.ai/termsofservice, a page last updated 2025-11-23. Clause 1.3 gives the user the copyrights to the creations, usable commercially and non-commercially without permission. Clause 3.3 keeps ownership with the user and permits use, modification, and distribution for any purpose, except training other models without PixelLab's explicit permission, with the user responsible for not infringing third-party rights. No third-party protected reference images or trademarks were used as inputs. These PNGs are not MIT. The repository's MIT license covers the source, and the sprites are owned outputs redistributed under the PixelLab terms above.
 
-**Logo. Cleared.** `public/logo.jpg` is a 1024x1024 mug illustration used in the README and as the project image. Grok Imagine generated it via `image_gen` on 2026-08-27 at 12:10 CEST, and commit `550135a` added the first file. No reference image was used. The prompt was text only, "cream ceramic mug, stale coffee, crooked yellow sticky note, walnut desk, thick ink outlines, no letters". On 2026-08-28 an `image_edit` wrote PIP on the sticky note. Commit `bb9447f` put those bytes in the repository and in the app header. The file on disk is that edit. SHA-256 `16360354dd26e020252a89b25a9b0970db5f23466c24fd9bcc2ddbd6cb88938f`. The JPEG carries a C2PA manifest naming Grok Imagine as the software agent. xAI permits commercial use of generated outputs and the owner owns the output, under https://x.ai/legal/terms-of-service, with https://x.ai/legal/faq and https://x.ai/legal/brand-guidelines. The file is included in the repository under MIT to the extent applicable, which is not the same as saying the logo is MIT. Attribution is text only: **Created with Grok.** No xAI or Grok logo is used.
+**Logo. Cleared.** `public/logo.png` is a 1254x1254 mug illustration used in the README, app header, and as the project image. OpenAI ImageGen created it through Codex on 2026-08-29 at 10:03:51 CEST from a text-only prompt with no reference image, logo, or trademark. The owner reviewed and accepted it. SHA-256 `072ba2e43446c4508aa026c87fd6e7ed5c81b07afb44e1e8afe83705d641ef89`. OpenAI's EU Terms of Use state that, as between the user and OpenAI and to the extent permitted by applicable law, the user owns the output. The repository includes the file under MIT to the extent applicable. Full prompt and provenance are in `docs/asset-provenance.md`.
 
 **Homepage music loop. Not present.** There is no `public/audio/` directory and no audio file in the repository. If the public demo is wired to load an ElevenLabs paid-plan loop before submission, the two files land at `public/audio/pip-the-mug-homepage-loop-paid.mp3` and `.ogg`, which are the only two paths `.gitignore` accepts, and their plan, date, and terms get recorded in `docs/asset-provenance.md` from the owner's provenance JSON. Until that happens, the homepage has no background music and nothing to disclose here.
 
-**Music in the video. Cleared.** The final cut uses `pip-the-mug-demo-underscore-paid.mp3`, generated through the ElevenLabs Music API after the owner upgraded the account to Starter. The request began on 2026-08-28 at 09:32:19 UTC using `music_v2`, forced instrumental output, and requested 48 kHz stereo MP3. The processed track used in the edit has SHA-256 `105d666848c93890712c88fa78ab8253e20526b2d7ee44b27908efd59b1621c7`. The final 1 minute 53.642 second MP4 has SHA-256 `23f4f507372a7e04ae20b941de8ab1d48c62b10f239459ba4c27ab926ce9dbbf`. The audio files and video stay outside the repository. No ElevenLabs Free-plan file is used in the final cut.
+**Music in the video. Cleared.** The final cut uses `pip-the-mug-demo-underscore-paid.mp3`, generated through the ElevenLabs Music API after the owner upgraded the account to Starter. The request began on 2026-08-28 at 09:32:19 UTC using `music_v2`, forced instrumental output, and requested 48 kHz stereo MP3. The processed track used in the edit has SHA-256 `105d666848c93890712c88fa78ab8253e20526b2d7ee44b27908efd59b1621c7`. The final 1 minute 53.642 second MP4 has SHA-256 `fd1dc99e916c05f26c5d4dea949820a0d5609531c51a25b6937976d895cc4574`. The audio files and video stay outside the repository. No ElevenLabs Free-plan file is used in the final cut.
 
-**Narration in the video. Cleared.** English narration created with Grok using xAI TTS, voice Rigel. Script written for this project. The narration file is not in the repository and stays out with the rest of the video. The YouTube description credits it with the line "Narration created with Grok". No xAI or Grok logo appears in the video, the README, the screenshots, or the project image.
+**Narration in the video. Cleared.** ElevenLabs generated the English narration through its Text to Speech API on the owner's Starter paid plan on 2026-08-29. It uses voice Brian and model `eleven_multilingual_v2`. The aligned source and timed edit both contain `-paid` in their filenames and stay outside the repository. The final MP4 has SHA-256 `fd1dc99e916c05f26c5d4dea949820a0d5609531c51a25b6937976d895cc4574`. The YouTube description credits it with the line "Narration created with ElevenLabs."
 
-**Trademarks.** No third-party logo appears in the app, the screenshots, the README, or the project image, and that includes the xAI and Grok marks even though two credits now name them. "Created with Grok." for the logo and "Narration created with Grok." for the video are both text. "Desktop Holdings" and "Desk 4B" are invented, and the sprites depict unbranded generic objects. Chrome, ChatGPT, Vercel, PixelLab, ElevenLabs, xAI, and Grok are named in prose only, as plain factual references to the tools involved.
+**Trademarks.** No third-party logo appears in the app, the README, or the project image. "Desktop Holdings" and "Desk 4B" are invented, and the sprites depict unbranded generic objects. Chrome, ChatGPT, Vercel, PixelLab, ElevenLabs, and OpenAI are named in prose only as factual references to tools used.

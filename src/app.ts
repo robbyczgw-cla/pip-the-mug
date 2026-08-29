@@ -40,7 +40,6 @@ interface UiState {
   flashId: EmployeeId | null;
   flashZone: Zone | null;
 }
-
 const ui: UiState = {
   selectedId: null,
   form: null,
@@ -335,7 +334,6 @@ export function mount(root: HTMLElement): void {
       <section class="scene" data-scene></section>
     </main>
     <div data-log></div>
-    <p class="site-credits">Created with Grok.</p>
     <aside class="drawer" data-panel aria-hidden="true"></aside>
     <div data-modal></div>
   `;
@@ -471,5 +469,3 @@ export function mount(root: HTMLElement): void {
     }
   });
 }
-
-
