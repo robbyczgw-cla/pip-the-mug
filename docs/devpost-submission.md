@@ -18,6 +18,8 @@ A desk of office objects that are also your staff. Your browser's agent is HR, a
 
 ### Inspiration
 
+Product teams that expose refunds, account deletion, payouts, and administrative approvals to agents face a concrete operational problem: which actions an agent may take depends on live application state, and mistakes can be irreversible. PIP the Mug is an executable reference for that contract. It derives an agent's capabilities from live state, validates targets with state-built input schemas, pauses irreversible work through `requestUserInteraction` when the client supports it, and returns `requires_user_action` without changing application state when it does not. It also keeps an auditable Agent-versus-Human record. WebMCP lets the page itself express these rules. DOM automation alone cannot declare or audit them. The HR satire makes the mechanism inspectable in about one minute.
+
 Browser automation today mostly drives pixels. A script finds a button by selector, clicks it, and hopes the layout has not moved. The application has no idea what the automation is trying to do, so it cannot refuse. Every control in the DOM is reachable, including the destructive ones, and nothing in the page can tell an agent's click from a person's.
 
 That is fine for scraping a price. It is not fine for an admin console, a support queue, a refund workflow, or an HR system, which is where people actually want agents to help.
@@ -150,6 +152,8 @@ PIP the Mug is a desk of illustrated office objects that are also your staff, an
 ## Full description
 
 ### What it is
+
+Product teams that expose refunds, account deletion, payouts, and administrative approvals to agents face a concrete operational problem: which actions an agent may take depends on live application state, and mistakes can be irreversible. PIP the Mug is an executable reference for that contract. It derives an agent's capabilities from live state, validates targets with state-built input schemas, pauses irreversible work through `requestUserInteraction` when the client supports it, and returns `requires_user_action` without changing application state when it does not. It also keeps an auditable Agent-versus-Human record. WebMCP lets the page itself express these rules. DOM automation alone cannot declare or audit them. The HR satire makes the mechanism inspectable in about one minute.
 
 PIP the Mug is a top-down desk where eight illustrated objects are the staff of Desk 4B at Desktop Holdings. Each has a personnel file with a backstory, prior reviews, and an incident history. The Mug is a Senior Beverage Retention Specialist who has been retaining the same serving for three weeks. The Desk Plant is Chief Morale Officer, is down to two leaves, and files standups describing itself as green-adjacent.
 
