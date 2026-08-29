@@ -1,6 +1,6 @@
 # Devpost submission copy
 
-Finished text for each Devpost field, for the OpenAI WebMCP Challenge. Replace `LIVE_DEMO_URL`, `PUBLIC_REPO_URL`, and `YOUTUBE_URL` with the real links before submitting. Nothing else needs editing.
+Finished text for each Devpost field for the OpenAI WebMCP Challenge. The live demo, repository, and video links below are the release URLs.
 
 Official rules: https://webmcp.devpost.com/rules
 
@@ -86,14 +86,14 @@ TypeScript, Vite, WebMCP (`document.modelContext` / `navigator.modelContext`), J
 
 ## Try it out links
 
-- Live demo: `LIVE_DEMO_URL`
-- Source: `PUBLIC_REPO_URL`
+- Live demo: `https://pip-the-mug.vercel.app/`
+- Source: `https://github.com/robbyczgw-cla/pip-the-mug`
 
 Open the live demo in ChatGPT's in-app browser, or in Google Chrome 149 or later with `chrome://flags/#enable-webmcp-testing` enabled and the browser relaunched. Click Reset company, open "Try it with your agent", copy the prompt, and paste it into your agent. The full reproduction script is in `docs/demo-protocol.md`.
 
 ## Video
 
-`YOUTUBE_URL`
+`https://youtu.be/Hvzt2VUO43U`
 
 Under three minutes, public on YouTube.
 
@@ -203,9 +203,9 @@ Under the joke: dynamic re-registration keyed on a schema signature, a working f
 
 ### Links
 
-- Live demo: `LIVE_DEMO_URL`
-- Source: `PUBLIC_REPO_URL`
-- Video: `YOUTUBE_URL`
+- Live demo: `https://pip-the-mug.vercel.app/`
+- Source: `https://github.com/robbyczgw-cla/pip-the-mug`
+- Video: `https://youtu.be/Hvzt2VUO43U`
 
 Open the live demo in ChatGPT's in-app browser, or in Google Chrome 149 or later with `chrome://flags/#enable-webmcp-testing` enabled and the browser relaunched.
 
@@ -224,7 +224,7 @@ Open the live demo in ChatGPT's in-app browser, or in Google Chrome 149 or later
 The full script with expected values and pass and fail criteria is in `docs/demo-protocol.md`. The short version, about a minute:
 
 1. **Browser.** Use ChatGPT's in-app browser, or Google Chrome 149 or later with `chrome://flags/#enable-webmcp-testing` set to Enabled and the browser relaunched. Nothing else exposes a model context today.
-2. **Open** `LIVE_DEMO_URL`. Locally: `pnpm i && pnpm dev`, then open `/`. Do not use `/qa`; that is a 13-person test desk and the counts will not match.
+2. **Open** `https://pip-the-mug.vercel.app/`. Locally: `pnpm i && pnpm dev`, then open `/`. Do not use `/qa`; that is a 13-person test desk and the counts will not match.
 3. **Click Reset company** before you start. State persists per seed, so a desk with history from an earlier run will not match the expected values.
 4. **Check the start.** The banner should read "WebMCP on". The access strip should read 9 tools. The Desk Plant should carry a yellow PIP sticker, and the log should show three SYSTEM rows.
 5. **Copy the prompt.** Open "Try it with your agent" on the page and click Copy prompt. Paste it into your agent.
@@ -264,8 +264,8 @@ The one irreversible action stops at a human. terminate returns requires_user_ac
 
 Built for the OpenAI WebMCP Challenge. Client-only TypeScript and Vite, no backend, no model inside the app, no API keys.
 
-Live demo: LIVE_DEMO_URL
-Source (MIT): PUBLIC_REPO_URL
+Live demo: https://pip-the-mug.vercel.app/
+Source (MIT): https://github.com/robbyczgw-cla/pip-the-mug
 
 Requires ChatGPT's in-app browser, or Google Chrome 149 or later with chrome://flags/#enable-webmcp-testing enabled.
 

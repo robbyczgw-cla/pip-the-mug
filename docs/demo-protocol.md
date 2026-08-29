@@ -15,7 +15,7 @@ Serve the page over https or from `localhost`. On another origin without TLS the
 
 Either one:
 
-- Hosted: `LIVE_DEMO_URL`
+- Hosted: `https://pip-the-mug.vercel.app/`
 - Local: `pnpm i && pnpm dev`, then open `/`
 
 `/`, `/demo`, and `?demo=1` all load the demo seed. Do not use `/qa`; that is the 13-person test desk and the counts below will not match.

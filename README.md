@@ -6,9 +6,9 @@ A desk of illustrated office objects that are also the staff of Desk 4B at Deskt
 
 Under the joke this is a small reference implementation of a pattern I think operational web apps will need: give an agent semantic tools instead of a DOM to click, gate the tools on live application state, put the shared state on screen where both of you can see it, stop irreversible actions at a human click, and log who did what. Admin consoles, support tools, finance workflows, and HR systems all have the same shape. A mug with a three-week-old coffee in it is just easier to remember than a refund queue.
 
-- Live demo: `LIVE_DEMO_URL`
-- Video: `YOUTUBE_URL`
-- Source: `PUBLIC_REPO_URL`
+- Live demo: [pip-the-mug.vercel.app](https://pip-the-mug.vercel.app/)
+- Video: [YouTube demo](https://youtu.be/Hvzt2VUO43U)
+- Source: [github.com/robbyczgw-cla/pip-the-mug](https://github.com/robbyczgw-cla/pip-the-mug)
 
 ## Why WebMCP
 

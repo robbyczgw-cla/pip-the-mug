@@ -24,7 +24,7 @@ Do not reopen these. The basis for each is written up in `docs/asset-provenance.
 - [ ] The GitHub About box shows **MIT** at the top of the repository page. GitHub detects this from `LICENSE`; check it after publishing rather than assuming.
 - [x] Full source is in the repo: `src/`, `index.html`, `package.json`, `tsconfig.json`, `vite.config.ts`, `vercel.json`.
 - [x] Assets are in the repo: `public/favicon.svg`, `public/logo.png`, `public/sprites/`.
-- [ ] The OpenAI ImageGen logo appears in the README, in-app header, deployed site, Devpost project image, and any newly captured screenshots. The retired logo appears on none of those surfaces.
+- [ ] The OpenAI ImageGen logo appears in the README, in-app header, deployed site, Devpost project image, and any newly captured screenshots. The README, in-app header, deployed site, and current screenshots are verified. Check the Devpost project image before submitting.
 - [x] Instructions are in the repo: `README.md` plus `docs/architecture.md`, `docs/demo-protocol.md`, `docs/asset-provenance.md`.
 - [x] `VIDEO.md` is still in `.gitignore` and is not committed. It must not appear in the public repo and must not be linked from any public doc.
 - [x] No private preview hostnames or internal URLs anywhere in the repo, the README, the docs, the screenshots, or the video. Every link a reader can follow is a public one. Localhost references remain only in tests and local Vite configuration.
@@ -39,23 +39,23 @@ Do not reopen these. The basis for each is written up in `docs/asset-provenance.
 
 ## Placeholders
 
-Replace every one with the real URL before submitting. They appear in `README.md`, `docs/demo-protocol.md`, and `docs/devpost-submission.md`.
+The release URLs below are now written into `README.md`, `docs/demo-protocol.md`, and `docs/devpost-submission.md`.
 
-- [ ] `LIVE_DEMO_URL`
-- [ ] `PUBLIC_REPO_URL`
-- [ ] `YOUTUBE_URL`
-- [ ] Grep the whole repo for `LIVE_DEMO_URL`, `PUBLIC_REPO_URL`, and `YOUTUBE_URL` afterwards to confirm none are left.
+- [x] Live demo: https://pip-the-mug.vercel.app/
+- [x] Repository: https://github.com/robbyczgw-cla/pip-the-mug
+- [x] Video: https://youtu.be/Hvzt2VUO43U
+- [x] A full-repository search on 2026-08-29 found none of the three placeholder strings.
 
 ## Live demo
 
-- [ ] Deployed to Vercel as a static build with no functions.
+- [x] Deployed to Vercel as a static build with no functions. Production deployment `dpl_7ttrhBZ2dJjABVvWy86JXchSnBXX` was ready on 2026-08-29.
 - [ ] The deployed build was produced from the exact commit being submitted. Check the Vercel deployment's source commit against `SUBMITTED_COMMIT_SHA`, and redeploy if they differ. A live site ahead of or behind the public repo is the easiest way to fail a code review.
-- [ ] Served over https.
-- [ ] `vercel.json` SPA rewrite works: `/`, `/demo`, and `/qa` all load the app rather than 404.
-- [ ] `Origin-Agent-Cluster: ?1` is present on responses. Check the response headers on the deployed URL, not just the config file.
-- [ ] The live URL opens in ChatGPT's in-app browser and the banner reads WebMCP on.
+- [x] Served over https. The production alias is https://pip-the-mug.vercel.app/.
+- [x] `vercel.json` SPA rewrite works: `/`, `/demo`, and `/qa` returned HTTP 200 on 2026-08-29.
+- [x] `Origin-Agent-Cluster: ?1` is present on responses. Verified on the deployed URL on 2026-08-29.
+- [x] The live URL opens in ChatGPT's in-app browser and the banner reads WebMCP on. Verified on 2026-08-29.
 - [ ] The live URL opens in Google Chrome 149 or later with `chrome://flags/#enable-webmcp-testing` enabled, and the banner reads WebMCP on.
-- [ ] The live URL is not behind a login, a preview-protection setting, or an allowlist. Test it from a browser with no session.
+- [x] The live URL is not behind a login, a preview-protection setting, or an allowlist. Anonymous HTTP requests returned the app on 2026-08-29.
 
 ## Demo verification
 
@@ -63,7 +63,7 @@ Run these against the deployed URL, not localhost, with a real agent. The full s
 
 - [ ] **Demo seed loads.** `/`, `/demo`, and `?demo=1` all open the 8-person demo desk: `monitor`, `mug`, `pen`, `plant`, `usb-hub`, `charger`, `webcam-cover`, `stress-ball`. Plant is `on_pip`, Mug's last rating is 2, Pen's is 5.
 - [ ] **Reset company works.** Clicking it rebuilds the demo seed, restores the three SYSTEM rows, and leaves the QA desk under `pip-the-mug:v2:qa` untouched.
-- [ ] **Nine tools are discovered.** The access strip reads 9 tools on a freshly reset demo seed, and the agent's own client lists all nine by name: `list_staff`, `get_personnel_file`, `get_org_chart`, `write_review`, `put_on_pip`, `resolve_pip`, `promote`, `relocate`, `terminate`.
+- [x] **Nine tools are discovered.** On 2026-08-29 the public `/demo` access strip and ChatGPT in-app browser both listed all nine by name: `list_staff`, `get_personnel_file`, `get_org_chart`, `write_review`, `put_on_pip`, `resolve_pip`, `promote`, `relocate`, `terminate`.
 - [ ] **SEP-1 human handoff works.** `terminate` on Mug returns `ok: false` with `status: "requires_user_action"` and a `requestId`, Form SEP-1 opens on the page, the agent stops and asks, Mug stays employed, and clicking Confirm termination moves Mug to the Donated / Sink box and the alumni wall.
 - [ ] **Duplicate termination requests are refused.** With SEP-1 open, a second `terminate` call returns the same `requestId`, opens no second dialog, and files no second log row.
 - [ ] **The audit trail separates the actors.** After the run the activity log shows the pending request as **Agent**, the separation as **Human**, the PIP as **Agent**, and the three seeded rows as **SYSTEM**.
