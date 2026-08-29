@@ -248,4 +248,4 @@ MIT. See [`LICENSE`](LICENSE). Copyright (c) 2026 PIP the Mug contributors.
 
 Submission deadline 3 September 2026, 1:00pm PDT. Judging runs 4 September to 21 September 2026 against four equally weighted criteria: WebMCP Leverage, Execution, Potential Impact, and Creativity & Ambition. Official rules: https://webmcp.devpost.com/rules
 
-`docs/devpost-submission.md` holds the submission copy. `docs/public-release-checklist.md` tracks what still has to be true before the deadline.
+Submission materials and the reproducible test protocol are documented in `docs/devpost-submission.md` and `docs/demo-protocol.md`.

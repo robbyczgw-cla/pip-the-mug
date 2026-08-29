@@ -254,7 +254,7 @@ PIP the Mug: a WebMCP desk where termination stops for Upper Management
 
 ## YouTube description
 
-The current video does not contain `public/logo.png`. If the OpenAI ImageGen logo becomes the YouTube thumbnail, record that fact in the media disclosure.
+The video includes `public/logo.png` in the application header. The YouTube description credits the logo as created with OpenAI ImageGen.
 
 PIP the Mug is a desk of illustrated office objects that are also the staff of Desk 4B at Desktop Holdings. You are upper management. Your browser's agent is HR.
 
