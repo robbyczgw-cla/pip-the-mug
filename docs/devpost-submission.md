@@ -18,7 +18,7 @@ A desk of office objects that are also your staff. Your browser's agent is HR, a
 
 ### Inspiration
 
-Browser automation today drives pixels. A script finds a button by selector, clicks it, and hopes the layout has not moved. The application has no idea what the automation is trying to do, so it cannot refuse. Every control in the DOM is reachable, including the destructive ones, and nothing in the page can tell an agent's click from a person's.
+Browser automation today mostly drives pixels. A script finds a button by selector, clicks it, and hopes the layout has not moved. The application has no idea what the automation is trying to do, so it cannot refuse. Every control in the DOM is reachable, including the destructive ones, and nothing in the page can tell an agent's click from a person's.
 
 That is fine for scraping a price. It is not fine for an admin console, a support queue, a refund workflow, or an HR system, which is where people actually want agents to help.
 
@@ -34,13 +34,13 @@ The page registers nine WebMCP tools. Your agent reads the roster and the files,
 
 Four things happen that a DOM-clicking script cannot do:
 
-**The tool list changes with the state.** `resolve_pip` is registered only while at least one PIP is open. Close the plan and the tool is gone from your client's list. Terminate the whole desk and the five write tools stop being registered, leaving three read tools. Permission is not a rule in a prompt the model may ignore. It is the absence of a callable tool.
+**The tool list changes with the state.** `resolve_pip` is registered only while at least one PIP is open. Close the plan and the tool is gone from your client's list. Terminate the whole desk and the five write tools stop being registered, leaving three read tools. Most permissions are expressed by the absence of a callable tool. Same-quarter cooling-off stays visible as an explicit refusal with an explanation.
 
-**Ids come from the live roster.** Employee enums are rebuilt from state, so an invented id fails schema validation before any handler runs, and the handler re-checks anyway.
+**Ids come from the live roster.** Employee enums are rebuilt from state, so a conforming client rejects an invented id before the handler runs, and the handler re-checks anyway.
 
-**Termination stops for a human decision.** `terminate` is the only irreversible action. PIP the Mug first supports the client's `requestUserInteraction` callback. When the callback is unavailable, the tool opens Form SEP-1, returns `ok: false` with `status: "requires_user_action"` and a request id, and leaves the employee employed. The WebMCP workflow stops and asks Upper Management to decide on the page.
+**Termination stops for a human decision.** `terminate` is the only irreversible action. PIP the Mug prefers the client's `requestUserInteraction` callback. When the client does not provide it, as the current Codex shim does not, the tool opens Form SEP-1, returns `ok: false` with `status: "requires_user_action"` and a request id, and leaves the employee employed. The WebMCP workflow stops and asks Upper Management to decide on the page.
 
-**The log knows who did what.** Every write records an actor. The agent's termination request is logged as Agent. The separation is logged as Human, because you clicked it. An agent that clicks the DOM control to get around the gate produces a Human row that no human produced, which is exactly the discrepancy you want to be able to catch.
+**The log knows who did what.** Every write records an actor. In the fallback, the agent's termination request is logged as Agent. The separation is logged as Human, because you clicked it. An agent that clicks the DOM control to get around the gate produces a Human row that no human produced, which is exactly the discrepancy you want to be able to catch.
 
 Everything also works by hand. A browser with no WebMCP support runs the whole application, and the agent is the optional part.
 
@@ -159,7 +159,7 @@ The satire is the interface. The subject is safe agent access to operational web
 
 ### The problem
 
-Browser automation today drives pixels. A script finds a button by selector, clicks it, and hopes the layout has not moved. The application has no idea what the automation is trying to do, so it cannot refuse. Every control in the DOM is reachable, including the destructive ones, and the audit log records a click with no idea who made it.
+Browser automation today mostly drives pixels. A script finds a button by selector, clicks it, and hopes the layout has not moved. The application has no idea what the automation is trying to do, so it cannot refuse. Every control in the DOM is reachable, including the destructive ones, and the audit log records a click with no idea who made it.
 
 WebMCP changes the shape of the problem. The page registers named tools and the agent calls those. The page gets to decide what exists, what is valid, what needs a human, and who did it. This project implements all four and puts them on one screen.
 
@@ -169,7 +169,7 @@ Nine tools on the public demo seed, defined in `src/webmcp/tools.ts`: `list_staf
 
 Registration is dynamic rather than static. `startWebMcp()` in `src/webmcp/register.ts` subscribes to the store, and on every state change it rebuilds the tool definitions and hashes each tool's name and input schema. If the signature moved, it aborts the previous `AbortController` and re-registers the whole set. Nothing is patched in place, so what the client lists is always the current desk.
 
-That makes permission a property of the tool list rather than a rule in a prompt. `resolve_pip` is registered only while at least one PIP is open; close the plan and the tool disappears. Terminate everyone and the five write tools stop being registered, leaving three reads. Employee id enums are rebuilt from the live roster, so a hallucinated id fails schema validation before any handler runs, and terminating someone visibly shrinks the enums on the write tools.
+That makes most permissions a property of the tool list rather than a rule in a prompt. `resolve_pip` is registered only while at least one PIP is open; close the plan and the tool disappears. Terminate everyone and the five write tools stop being registered, leaving three reads. Employee id enums are rebuilt from the live roster, so conforming clients reject a hallucinated id before the handler runs, and terminating someone visibly shrinks the enums on the write tools. The same-quarter cooling-off rule remains an explicit tool refusal with an explanation.
 
 The termination handshake supports `requestUserInteraction` when the client provides it on `extra`. When it is missing or throws unsupported, which is what the current Codex WebMCP shim does, `src/webmcp/confirm.ts` downgrades that specific case to a manual decision. The page opens Form SEP-1, and the tool returns `ok: false` with `status: "requires_user_action"` and a request id without changing employment. This fallback preserves the WebMCP stop and handoff, while relying on the agent to respect that handoff if it also has separate DOM control.
 
@@ -223,7 +223,7 @@ Open the live demo in ChatGPT's in-app browser, or in Google Chrome 149 or later
 
 The full script with expected values and pass and fail criteria is in `docs/demo-protocol.md`. The short version, about a minute:
 
-1. **Browser.** Use ChatGPT's in-app browser, or Google Chrome 149 or later with `chrome://flags/#enable-webmcp-testing` set to Enabled and the browser relaunched. Nothing else exposes a model context today.
+1. **Browser.** Use ChatGPT's in-app browser, or Google Chrome 149 or later with `chrome://flags/#enable-webmcp-testing` set to Enabled and the browser relaunched. These are the environments in which the demo protocol was verified.
 2. **Open** `https://pip-the-mug.vercel.app/`. Locally: `pnpm i && pnpm dev`, then open `/`. Do not use `/qa`; that is a 13-person test desk and the counts will not match.
 3. **Click Reset company** before you start. State persists per seed, so a desk with history from an earlier run will not match the expected values.
 4. **Check the start.** The banner should read "WebMCP on". The access strip should read 9 tools. The Desk Plant should carry a yellow PIP sticker, and the log should show three SYSTEM rows.

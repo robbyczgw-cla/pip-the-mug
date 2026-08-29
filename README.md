@@ -18,9 +18,9 @@ WebMCP inverts that. The page registers named tools with JSON Schema inputs, and
 
 The page decides what exists. `terminate` is registered because someone is still employed. `resolve_pip` is registered because a plan is open. Close the plan and the tool disappears from the client's list. The agent never has to guess whether an action is currently legal, because illegal actions are not on the menu.
 
-The page decides what is valid. Employee id enums are built from the live roster, so a hallucinated id fails schema validation before any code runs. Everything that gets through still hits a second check in the store.
+The page decides what is valid. Employee id enums are built from the live roster, so a conforming client rejects a hallucinated id before the handler runs. Everything that gets through still hits a second check in the store.
 
-The page decides what needs a human. `terminate` carries `destructiveHint: true` and refuses to finish on its own. It opens Form SEP-1 on screen and hands control back with `status: "requires_user_action"`. No amount of prompt engineering gets around it, because the code path that ends employment only runs from a click event.
+The page decides what needs a human. `terminate` carries `destructiveHint: true` and refuses to proceed without a human decision. It prefers the client's `requestUserInteraction` callback. If the client does not support that callback, the tool opens Form SEP-1 and hands control back with `status: "requires_user_action"`.
 
 The page can tell the two of you apart. Tool calls write `actor: "agent"`. Clicks and drags write `actor: "human"`. The activity log prints both.
 
@@ -149,7 +149,7 @@ Descriptions are written for an agent to read rather than for a docs page, and e
 
 `startWebMcp()` subscribes to the store. On every state change it rebuilds the tool definitions and compares the JSON of `{name, inputSchema}` against the last registration. If anything moved, it aborts the previous `AbortController` and registers the whole set again. Registrations carry that signal, so a run superseded mid-loop stops instead of racing the new one. Nothing is patched in place, so whatever your client lists is the current desk.
 
-This is the part I would keep if I threw out everything else. The id enums come from the live roster, so terminating someone narrows the enums on `put_on_pip`, `promote`, `relocate`, and `terminate`. Opening a PIP makes `resolve_pip` exist; closing it makes the tool vanish. Terminate the entire desk and the write tools stop being registered altogether, leaving the three read tools. Permission is not a rule in a system prompt that the model may or may not follow. It is the absence of a callable tool.
+This is the part I would keep if I threw out everything else. The id enums come from the live roster, so terminating someone narrows the enums on `put_on_pip`, `promote`, `relocate`, and `terminate`. Opening a PIP makes `resolve_pip` exist; closing it makes the tool vanish. Terminate the entire desk and the write tools stop being registered altogether, leaving the three read tools. Most permissions are expressed by the absence of a callable tool. The same-quarter cooling-off rule stays visible as an explicit refusal with an explanation.
 
 ## Terminating someone stops at a human
 
@@ -221,9 +221,9 @@ The app is client-only. No backend, no language model inside the page, no API ke
 The boundary that matters is between the agent and the application, not between the app and a server. The rules:
 
 - The agent reaches state only through registered tools. There is no tool that writes arbitrary state, and no tool that clicks the UI.
-- Input enums come from live state, so ids the agent invents fail before any handler runs.
+- Input enums come from live state, so conforming clients reject ids the agent invents before a handler runs.
 - Every tool handler re-checks in the store what the schema already claimed. The schema is the fast path, not the guarantee.
-- The one irreversible action returns `requires_user_action` and waits. The code that performs it runs from a click handler in `src/app.ts` and from nowhere else.
+- The one irreversible action waits for a human answer through `requestUserInteraction`. When the client does not support that callback, it returns `requires_user_action`, and only the SEP-1 click handler in `src/app.ts` can complete the fallback path.
 - Actor is recorded on every write, so the log shows an agent-requested termination and a human-confirmed one as two different rows.
 
 An agent that clicks Confirm termination in the DOM has broken the rule its own tool description states, and the log records that click as Human, which is exactly the discrepancy you would want to catch. The demo prompt tells the agent not to touch DOM controls for that reason.
