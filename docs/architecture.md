@@ -90,7 +90,7 @@ If the callback exists but throws, `isUnsupportedUserInteraction()` tests the er
 
 Manual mode does not mean the termination happens. It means the page takes over the asking. `terminate` calls `beginPendingTermination()`, Form SEP-1 renders on the page, and the tool returns `ok: false` with `status: "requires_user_action"`, `action: "confirm_termination_in_page"`, the `employeeId`, and a `requestId`. The employee is still employed. The tool description instructs the agent to stop, ask the user, and not click the control.
 
-Both branches converge on the same place: no separation without a human answer.
+Both branches wait for a confirmation response before separation. A supporting client owns the `requestUserInteraction` prompt. The in-page SEP-1 path preserves the WebMCP stop and handoff on clients without that callback, but it relies on the agent following the handoff rather than providing a security boundary against separate DOM automation.
 
 ### The termination handshake
 

@@ -159,6 +159,8 @@ If the client passed a working `requestUserInteraction` callback in `extra`, the
 
 If the callback is missing, or throws something that reads as unsupported, `src/webmcp/confirm.ts` swallows the error and reports `{ kind: "manual" }`. That is the path the Codex WebMCP shim takes. In manual mode the tool terminates nobody. It calls `beginPendingTermination()`, opens Form SEP-1 on the page, and returns `ok: false` with `status: "requires_user_action"`, the `employeeId`, and a `requestId`. The employee stays employed. The tool description tells the agent to stop, ask you to click Confirm termination, and not click that control itself.
 
+PIP the Mug supports `requestUserInteraction` as the preferred confirmation path. The in-page SEP-1 fallback preserves the same stop-and-handoff behavior for clients that do not support it, but it is a cooperative client workflow rather than a security boundary against an agent with separate DOM control.
+
 When you do click it, `src/app.ts` closes the personnel drawer first so you can see the desk, then calls `terminate(..., "human")`. Two rows land in the activity log: the pending request as Agent, the separation itself as Human.
 
 Same-quarter promotions get a separate refusal. `terminate` stays registered for a promoted employee, but calling it returns `ok: false` with a cooling-off explanation and does not open SEP-1. Close the quarter and the protection expires.

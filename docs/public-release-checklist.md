@@ -20,20 +20,20 @@ Do not reopen these. The basis for each is written up in `docs/asset-provenance.
 ## Repository
 
 - [ ] Repository is public on GitHub.
-- [ ] `LICENSE` is present, unchanged, and MIT. Copyright (c) 2026 PIP the Mug contributors.
+- [x] `LICENSE` is present, unchanged, and MIT. Copyright (c) 2026 PIP the Mug contributors.
 - [ ] The GitHub About box shows **MIT** at the top of the repository page. GitHub detects this from `LICENSE`; check it after publishing rather than assuming.
-- [ ] Full source is in the repo: `src/`, `index.html`, `package.json`, `tsconfig.json`, `vite.config.ts`, `vercel.json`.
-- [ ] Assets are in the repo: `public/favicon.svg`, `public/logo.png`, `public/sprites/`.
+- [x] Full source is in the repo: `src/`, `index.html`, `package.json`, `tsconfig.json`, `vite.config.ts`, `vercel.json`.
+- [x] Assets are in the repo: `public/favicon.svg`, `public/logo.png`, `public/sprites/`.
 - [ ] The OpenAI ImageGen logo appears in the README, in-app header, deployed site, Devpost project image, and any newly captured screenshots. The retired logo appears on none of those surfaces.
-- [ ] Instructions are in the repo: `README.md` plus `docs/architecture.md`, `docs/demo-protocol.md`, `docs/asset-provenance.md`.
-- [ ] `VIDEO.md` is still in `.gitignore` and is not committed. It must not appear in the public repo and must not be linked from any public doc.
-- [ ] No private preview hostnames or internal URLs anywhere in the repo, the README, the docs, the screenshots, or the video. Every link a reader can follow is a public one.
-- [ ] No credentials, tokens, or `.env` files in the working tree or in the git history. The PixelLab API token was never committed; confirm that still holds with a scan of the history.
-- [ ] `pnpm build` passes (`tsc --noEmit` clean, static build into `dist/`).
-- [ ] `pnpm test` passes.
-- [ ] `dist/` is not committed.
-- [ ] No video file is committed. The submission video lives on YouTube and stays out of the repository, and `VIDEO.md` stays gitignored and unlinked from every public doc.
-- [ ] The audio rules in `.gitignore` still hold and nothing slipped past them. They ignore `*.mp3`, `*.wav`, `*.m4a`, and `*.ogg`, then re-include exactly two paths: `!public/audio/pip-the-mug-homepage-loop-paid.mp3` and `!public/audio/pip-the-mug-homepage-loop-paid.ogg`. That is a two-path exception, not a blanket `-paid` un-ignore, and it should not be widened into one. Every other audio file stays ignored. Video extensions are not in `.gitignore`, so they must not be committed; the submission video lives on YouTube. Run `git ls-files | grep -iE '\.(mp3|wav|m4a|ogg|flac|aac|mp4|mov|webm)$'` and confirm the only hits are those two homepage-loop paths, if they are here at all. Git will accept a free-plan track renamed to one of them, so the provenance record is the check, not the filter.
+- [x] Instructions are in the repo: `README.md` plus `docs/architecture.md`, `docs/demo-protocol.md`, `docs/asset-provenance.md`.
+- [x] `VIDEO.md` is still in `.gitignore` and is not committed. It must not appear in the public repo and must not be linked from any public doc.
+- [x] No private preview hostnames or internal URLs anywhere in the repo, the README, the docs, the screenshots, or the video. Every link a reader can follow is a public one. Localhost references remain only in tests and local Vite configuration.
+- [x] No credentials, tokens, or `.env` files in the working tree or in the git history. The PixelLab API token was never committed; the current tree and full patch history were scanned again on 2026-08-29.
+- [x] `pnpm build` passes (`tsc --noEmit` clean, static build into `dist/`). Verified 2026-08-29.
+- [x] `pnpm test` passes. Verified 24 of 24 on 2026-08-29.
+- [x] `dist/` is not committed.
+- [x] No video file is committed. The submission video lives on YouTube and stays out of the repository, and `VIDEO.md` stays gitignored and unlinked from every public doc.
+- [x] The audio rules in `.gitignore` still hold and nothing slipped past them. They ignore `*.mp3`, `*.wav`, `*.m4a`, and `*.ogg`, then re-include exactly two paths: `!public/audio/pip-the-mug-homepage-loop-paid.mp3` and `!public/audio/pip-the-mug-homepage-loop-paid.ogg`. That is a two-path exception, not a blanket `-paid` un-ignore, and it should not be widened into one. Every other audio file stays ignored. Video extensions are not in `.gitignore`, so they must not be committed; the submission video lives on YouTube. `git ls-files` returned no audio or video files on 2026-08-29.
 - [x] Screenshots in `docs/demo/` match the current build and show WebMCP on. The three 1440 by 900 captures use the current logo and show the reset seed, SEP-1, and the Human confirmation result.
 - [ ] The commit that will be submitted is recorded. Note the full SHA here, and tag it (for example `submission-2026-09-03`) so the judged state is identifiable later: `SUBMITTED_COMMIT_SHA`.
 
@@ -70,10 +70,10 @@ Run these against the deployed URL, not localhost, with a real agent. The full s
 
 ## Video
 
-- [ ] Under three minutes.
+- [x] Under three minutes. Final export is 113.642 seconds.
 - [ ] Uploaded to YouTube and set to public. Not unlisted, not private.
 - [x] Soundtrack resolved and recorded in `docs/asset-provenance.md`.
-- [ ] Every ElevenLabs audio file used in the final cut has `-paid` in its filename. Check the actual files in the editing project, not the export. One non-`-paid` ElevenLabs clip anywhere in the timeline fails this. Non-ElevenLabs audio is not covered by the naming rule and is cleared through its own provenance row instead.
+- [x] Every ElevenLabs audio file used in the final cut has `-paid` in its filename. The final narration source, timed narration, and soundtrack were checked before export; their provenance and hashes are recorded in `docs/asset-provenance.md`.
 - [ ] Confirmed that no non-`-paid` ElevenLabs file was published, committed, uploaded, or linked anywhere: repo, live site, YouTube, or Devpost.
 - [ ] The description carries "Narration created with ElevenLabs." The current logo was created with OpenAI ImageGen.
 - [ ] No third-party trademarks or logos appear on screen. Tool names stay in prose.

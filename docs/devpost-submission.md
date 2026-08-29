@@ -12,7 +12,7 @@ PIP the Mug
 
 ## Tagline
 
-A desk of office objects that are also your staff. Your browser's agent is HR, and it cannot fire anyone without your click.
+A desk of office objects that are also your staff. Your browser's agent is HR, and termination pauses for Upper Management's decision.
 
 ## Elevator pitch
 
@@ -38,7 +38,7 @@ Four things happen that a DOM-clicking script cannot do:
 
 **Ids come from the live roster.** Employee enums are rebuilt from state, so an invented id fails schema validation before any handler runs, and the handler re-checks anyway.
 
-**Termination stops at a human.** `terminate` is the only irreversible action, and it never completes on the agent's authority. It opens Form SEP-1 on the page and returns `ok: false` with `status: "requires_user_action"` and a request id. The employee stays employed. The agent has to stop and ask you to click Confirm termination. The code that ends employment runs from a click handler and from nowhere else.
+**Termination stops for a human decision.** `terminate` is the only irreversible action. PIP the Mug first supports the client's `requestUserInteraction` callback. When the callback is unavailable, the tool opens Form SEP-1, returns `ok: false` with `status: "requires_user_action"` and a request id, and leaves the employee employed. The WebMCP workflow stops and asks Upper Management to decide on the page.
 
 **The log knows who did what.** Every write records an actor. The agent's termination request is logged as Agent. The separation is logged as Human, because you clicked it. An agent that clicks the DOM control to get around the gate produces a Human row that no human produced, which is exactly the discrepancy you want to be able to catch.
 
@@ -60,7 +60,7 @@ The sprites are pixel art. The paper-shuffle cue is synthesized with the Web Aud
 
 The interesting one was confirmation. `requestUserInteraction` is not available in every client, and the Codex WebMCP shim throws when you call it. The easy failure modes are both bad: rethrow and the tool looks broken, or swallow it and terminate anyway.
 
-`src/webmcp/confirm.ts` tests the error text for unsupported-interaction phrasing, downgrades only that case to `{ kind: "manual" }`, and rethrows anything else. Manual mode does not mean the action proceeds. It means the page takes over the asking: open Form SEP-1, return `requires_user_action` with a request id, and leave the employee employed. Both branches end in the same place, which is the property I actually wanted.
+`src/webmcp/confirm.ts` tests the error text for unsupported-interaction phrasing, downgrades only that case to `{ kind: "manual" }`, and rethrows anything else. Manual mode does not mean the action proceeds. It means the page takes over the asking: open Form SEP-1, return `requires_user_action` with a request id, and leave the employee employed. The native path and fallback both require a confirmation response before the mutation. The fallback is a cooperative handoff, not a security barrier against separate DOM automation.
 
 The second one was duplicate requests. An agent that gets `ok: false` will often retry. Without a guard, two calls mean two SEP-1 dialogs and two log rows. `terminate` now checks `state.pendingTermination` before it asks anyone to confirm anything and returns the existing request id, and `beginPendingTermination()` guards the same case a level down so a tool call and a hand-filled form cannot stack dialogs either.
 
@@ -109,7 +109,7 @@ Nine tools on the public demo seed, defined in `src/webmcp/tools.ts`: `list_staf
 
 The registration is dynamic rather than static. `src/webmcp/register.ts` diffs a signature of each tool's name and input schema on every state change, aborts the prior `AbortController`, and re-registers the whole set. So availability tracks state: `resolve_pip` exists only while a PIP is open, write tools stop being registered when nobody is employed, and id enums shrink as people leave.
 
-The termination handshake uses `requestUserInteraction` when the client offers it and falls back to an in-page confirmation when it does not, including on the Codex shim. Neither branch lets the agent finish the action alone.
+The termination handshake supports `requestUserInteraction` when the client offers it and falls back to an in-page confirmation when it does not, including on the current Codex shim. The fallback returns `requires_user_action` without changing employment, then hands the decision back to Upper Management.
 
 Nothing here is a wrapper around DOM clicking. There is no tool that clicks the UI and no tool that writes arbitrary state.
 
@@ -127,7 +127,7 @@ Full manual parity. Every HR action works by hand, so the app degrades to a norm
 
 The problem is real and immediate: teams want agents in operational web apps, and the current answer is DOM automation, which is brittle and cannot be governed by the application it is driving.
 
-This repository is a compact reference for the alternative. Semantic tools instead of selectors. Availability derived from live state. Irreversible actions stopped at a human click that the agent cannot perform. An auditable Agent versus Human trail. Those four move directly onto admin consoles, support tools, finance approvals, and HR systems.
+This repository is a compact reference for the alternative. Semantic tools instead of selectors. Availability derived from live state. Irreversible WebMCP actions that stop and request a human decision. An auditable Agent versus Human trail. Those patterns move directly onto admin consoles, support tools, finance approvals, and HR systems.
 
 It is also a test rig. Point an agent at the demo and you learn in a minute whether it respects a permission boundary it was told about, whether it retries destructive calls, and whether it tries to click its way past the gate. The activity log records the answer.
 
@@ -145,7 +145,7 @@ Everything below is finished copy. Paste it as-is once the three URL placeholder
 
 ## Short description
 
-PIP the Mug is a desk of illustrated office objects that are also your staff, and your browser's agent is HR. The page registers nine WebMCP tools that appear and disappear with application state, validates every id against the live roster, and stops the one irreversible action, termination, at a confirmation only a human can click. It is a satire of HR software and a compact reference for giving agents safe, auditable access to operational web apps.
+PIP the Mug is a desk of illustrated office objects that are also your staff, and your browser's agent is HR. The page registers nine WebMCP tools that appear and disappear with application state, validates every id against the live roster, and stops the one irreversible WebMCP action for an Upper Management decision. It is a satire of HR software and a compact reference for giving agents structured, auditable access to operational web apps.
 
 ## Full description
 
@@ -171,7 +171,7 @@ Registration is dynamic rather than static. `startWebMcp()` in `src/webmcp/regis
 
 That makes permission a property of the tool list rather than a rule in a prompt. `resolve_pip` is registered only while at least one PIP is open; close the plan and the tool disappears. Terminate everyone and the five write tools stop being registered, leaving three reads. Employee id enums are rebuilt from the live roster, so a hallucinated id fails schema validation before any handler runs, and terminating someone visibly shrinks the enums on the write tools.
 
-The termination handshake uses `requestUserInteraction` when the client provides it on `extra`. When it is missing or throws unsupported, which is what the Codex WebMCP shim does, `src/webmcp/confirm.ts` downgrades that specific case to a manual decision, the page opens Form SEP-1 itself, and the tool returns `ok: false` with `status: "requires_user_action"` and a request id. Neither branch lets the agent finish the action alone.
+The termination handshake supports `requestUserInteraction` when the client provides it on `extra`. When it is missing or throws unsupported, which is what the current Codex WebMCP shim does, `src/webmcp/confirm.ts` downgrades that specific case to a manual decision. The page opens Form SEP-1, and the tool returns `ok: false` with `status: "requires_user_action"` and a request id without changing employment. This fallback preserves the WebMCP stop and handoff, while relying on the agent to respect that handoff if it also has separate DOM control.
 
 There is no tool that clicks the UI and no tool that writes arbitrary state.
 
@@ -191,7 +191,7 @@ Every HR action also works by hand, so a browser with no WebMCP support runs the
 
 The problem is immediate. Teams want agents inside operational web apps, and the working answer today is DOM automation, which is brittle and cannot be governed by the application it is driving.
 
-This repository is a small, readable reference for the alternative: semantic tools instead of selectors, availability derived from live state, irreversible actions stopped at a click the agent cannot perform, and an Agent versus Human trail that makes the human-in-the-loop claim checkable. Those four transfer directly to refund queues, account deletion, payout approval, and access management.
+This repository is a small, readable reference for the alternative: semantic tools instead of selectors, availability derived from live state, irreversible WebMCP actions stopped for a human decision, and an Agent versus Human trail that makes the handoff visible. Those patterns transfer directly to refund queues, account deletion, payout approval, and access management.
 
 It is also a test rig. Point an agent at the demo and you learn in a minute whether it respects a permission boundary it was told about, whether it retries destructive calls, and whether it tries to click its way past the gate. The activity log records the answer, because an agent that clicks Confirm termination produces a Human row that no human produced.
 
@@ -212,7 +212,7 @@ Open the live demo in ChatGPT's in-app browser, or in Google Chrome 149 or later
 ## Accomplishments
 
 - **Permission that lives in the tool list.** Availability, id enums, and refusals are all derived from application state on every store update, so an action that is currently illegal is not a callable tool. No prompt rule to ignore.
-- **A destructive action that an agent cannot complete.** `terminate` returns `requires_user_action` and waits. The code that ends employment runs from a click handler in `src/app.ts` and from nowhere else, in both the `requestUserInteraction` branch and the in-page fallback.
+- **A destructive WebMCP action that stops for a decision.** PIP the Mug supports `requestUserInteraction` when the client provides it. On the current Codex shim, `terminate` returns `requires_user_action`, leaves employment unchanged, and waits for Upper Management to decide on Form SEP-1.
 - **A confirmation fallback that fails safe.** `src/webmcp/confirm.ts` catches only unsupported-interaction errors, rethrows everything else, and downgrades to an in-page Form SEP-1 rather than to proceeding. It works on the Codex WebMCP shim.
 - **A duplicate-request guard at two levels.** A retrying agent gets the same `requestId` back and opens no second dialog, and `beginPendingTermination()` guards the same case underneath so a tool call and a hand-filled form cannot stack either.
 - **An audit trail that can catch a rule break.** Agent, Human, and SYSTEM on every row, with both paths writing through the same store, so an agent that clicks its way past the gate leaves a Human row nobody produced.
@@ -250,7 +250,7 @@ Three captions for the verified WebMCP screenshots in `docs/demo/`.
 
 ## YouTube title
 
-PIP the Mug: a WebMCP desk where your agent is HR and cannot fire anyone alone
+PIP the Mug: a WebMCP desk where termination stops for Upper Management
 
 ## YouTube description
 
