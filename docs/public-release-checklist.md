@@ -19,9 +19,9 @@ Do not reopen these. The basis for each is written up in `docs/asset-provenance.
 
 ## Repository
 
-- [ ] Repository is public on GitHub.
+- [x] Repository is public on GitHub. Verified by the GitHub API and an anonymous HTTP 200 response on 2026-08-29.
 - [x] `LICENSE` is present, unchanged, and MIT. Copyright (c) 2026 PIP the Mug contributors.
-- [ ] The GitHub About box shows **MIT** at the top of the repository page. GitHub detects this from `LICENSE`; check it after publishing rather than assuming.
+- [x] GitHub recognizes the repository license as **MIT**. Verified through the GitHub API on 2026-08-29.
 - [x] Full source is in the repo: `src/`, `index.html`, `package.json`, `tsconfig.json`, `vite.config.ts`, `vercel.json`.
 - [x] Assets are in the repo: `public/favicon.svg`, `public/logo.png`, `public/sprites/`.
 - [ ] The OpenAI ImageGen logo appears in the README, in-app header, deployed site, Devpost project image, and any newly captured screenshots. The README, in-app header, deployed site, and current screenshots are verified. Check the Devpost project image before submitting.
@@ -48,7 +48,7 @@ The release URLs below are now written into `README.md`, `docs/demo-protocol.md`
 
 ## Live demo
 
-- [x] Deployed to Vercel as a static build with no functions. Production deployment `dpl_7ttrhBZ2dJjABVvWy86JXchSnBXX` was ready on 2026-08-29.
+- [x] Deployed to Vercel as a static build with no functions. The production alias was ready and externally reachable on 2026-08-29.
 - [ ] The deployed build was produced from the exact commit being submitted. Check the Vercel deployment's source commit against `SUBMITTED_COMMIT_SHA`, and redeploy if they differ. A live site ahead of or behind the public repo is the easiest way to fail a code review.
 - [x] Served over https. The production alias is https://pip-the-mug.vercel.app/.
 - [x] `vercel.json` SPA rewrite works: `/`, `/demo`, and `/qa` returned HTTP 200 on 2026-08-29.
@@ -71,14 +71,14 @@ Run these against the deployed URL, not localhost, with a real agent. The full s
 ## Video
 
 - [x] Under three minutes. Final export is 113.642 seconds.
-- [ ] Uploaded to YouTube and set to public. Not unlisted, not private.
+- [x] Uploaded to YouTube and set to public. YouTube confirmed "Video published" on 2026-08-29.
 - [x] Soundtrack resolved and recorded in `docs/asset-provenance.md`.
 - [x] Every ElevenLabs audio file used in the final cut has `-paid` in its filename. The final narration source, timed narration, and soundtrack were checked before export; their provenance and hashes are recorded in `docs/asset-provenance.md`.
-- [ ] Confirmed that no non-`-paid` ElevenLabs file was published, committed, uploaded, or linked anywhere: repo, live site, YouTube, or Devpost.
-- [ ] The description carries "Narration created with ElevenLabs." The current logo was created with OpenAI ImageGen.
-- [ ] No third-party trademarks or logos appear on screen. Tool names stay in prose.
-- [ ] Shows the live demo, the tool list, the `requires_user_action` result, the human clicking Confirm termination, and the Agent versus Human rows in the activity log.
-- [ ] Playable without being signed in. Check in a private window.
+- [x] Confirmed that no non-`-paid` ElevenLabs file was published, committed, uploaded, or linked anywhere: repo, live site, YouTube, or Devpost.
+- [x] The description carries "Narration created with ElevenLabs.", "Music created with ElevenLabs.", and "Logo created with OpenAI ImageGen."
+- [x] No third-party trademarks or logos appear on screen. Tool names stay in prose.
+- [x] Shows the live demo, the tool list, the `requires_user_action` result, the human clicking Confirm termination, and the Agent versus Human rows in the activity log.
+- [x] Playable without being signed in. The public watch URL returned HTTP 200 and YouTube's anonymous oEmbed endpoint returned the final title on 2026-08-29.
 
 ## Devpost entry
 
